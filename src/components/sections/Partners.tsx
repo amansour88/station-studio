@@ -2,45 +2,77 @@ import { useEffect, useState } from "react";
 
 // Partners from AWS Brandbook - Real company partners
 const partners = [
-  { 
-    name: "Saudi Aramco", 
-    nameAr: "أرامكو السعودية",
-    description: "شريك الوقود الرئيسي"
+  {
+    name: "Alfredy",
+    nameAr: "الفريدي",
+    description: "شريك الخدمات",
+    logo: "https://images.pexels.com/photos/16066/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400"
   },
-  { 
-    name: "Petromin", 
-    nameAr: "بترومين",
-    description: "شريك خدمات السيارات"
-  },
-  { 
-    name: "Ministry of Municipalities", 
-    nameAr: "وزارة البلديات",
-    description: "الجهة الرقابية"
-  },
-  { 
-    name: "Bank Al Bilad", 
-    nameAr: "بنك البلاد",
-    description: "الشريك المصرفي"
-  },
-  { 
-    name: "Jeraisy Group", 
-    nameAr: "مجموعة الجريسي",
-    description: "شريك التطوير"
-  },
-  { 
-    name: "Mazaya Group", 
-    nameAr: "مجموعة مزايا",
-    description: "شريك الاستثمار"
-  },
-  { 
-    name: "BON Oil", 
-    nameAr: "بون للزيوت",
-    description: "مورد الزيوت"
-  },
-  { 
-    name: "AL Seraj Transport", 
+  {
+    name: "Al Seraj",
     nameAr: "السراج للنقل",
-    description: "شريك اللوجستيات"
+    description: "شريك اللوجستيات",
+    logo: "https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Seyaj",
+    nameAr: "سيّاج",
+    description: "الشريك المالي",
+    logo: "https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "BON",
+    nameAr: "بون",
+    description: "مورد الزيوت",
+    logo: "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Ministry",
+    nameAr: "وزارة البلديات",
+    description: "الجهة الرقابية",
+    logo: "https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Al Rajhi",
+    nameAr: "مصرف الراجحي",
+    description: "الشريك المصرفي",
+    logo: "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "SNB",
+    nameAr: "البنك الأهلي السعودي",
+    description: "الشريك المصرفي",
+    logo: "https://images.pexels.com/photos/3944441/pexels-photo-3944441.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Saudi Aramco",
+    nameAr: "أرامكو السعودية",
+    description: "شريك الوقود الرئيسي",
+    logo: "https://images.pexels.com/photos/3807518/pexels-photo-3807518.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Amazon",
+    nameAr: "أمازون",
+    description: "شريك التجارة",
+    logo: "https://images.pexels.com/photos/3962286/pexels-photo-3962286.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Petromin",
+    nameAr: "بترومين",
+    description: "شريك خدمات السيارات",
+    logo: "https://images.pexels.com/photos/3944442/pexels-photo-3944442.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Lucas",
+    nameAr: "لوكاس",
+    description: "مزودة الزيوت",
+    logo: "https://images.pexels.com/photos/3807519/pexels-photo-3807519.jpeg?auto=compress&cs=tinysrgb&w=400"
+  },
+  {
+    name: "Mazaya",
+    nameAr: "مزايا",
+    description: "شريك الاستثمار",
+    logo: "https://images.pexels.com/photos/5632400/pexels-photo-5632400.jpeg?auto=compress&cs=tinysrgb&w=400"
   },
 ];
 
@@ -93,16 +125,18 @@ const Partners = () => {
               }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
+              {/* Partner Logo */}
+              <img
+                src={partner.logo}
+                alt={partner.nameAr}
+                className="w-20 h-20 object-contain mb-4 group-hover:scale-110 transition-transform duration-300"
+              />
               {/* Partner Name */}
-              <span className="text-xl font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-2">
+              <span className="text-lg font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-2">
                 {partner.nameAr}
               </span>
-              {/* English Name */}
-              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center">
-                {partner.name}
-              </span>
               {/* Description - appears on hover */}
-              <span className="text-xs text-secondary mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 {partner.description}
               </span>
             </div>

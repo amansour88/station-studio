@@ -62,7 +62,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             <Button
               size="lg"
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold animate-pulse-glow transition-all duration-300 hover:scale-105"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold transition-all duration-300 hover:scale-105"
               onClick={() => scrollToSection("#services")}
             >
               اكتشف خدماتنا
