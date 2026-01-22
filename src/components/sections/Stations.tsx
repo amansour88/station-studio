@@ -28,10 +28,10 @@ const stations = [
 
 const regions = [
   "منطقة القصيم",
-  "منطقة الرياض",
-  "المنطقة الشرقية",
+  "منطقة مكة المكرمة",
   "منطقة المدينة المنورة",
   "منطقة حائل",
+  "منطقة عسير",
 ];
 
 const Stations = () => {
@@ -70,7 +70,7 @@ const Stations = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-primary to-aws-burgundy-dark opacity-90" />
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">95+</div>
+              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">78</div>
               <div className="text-white/80">محطة وقود</div>
             </div>
             <div>

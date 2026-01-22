@@ -68,7 +68,7 @@ const About = () => {
             <p className="text-lg text-muted-foreground leading-relaxed mb-6">
               نشأت الشركة عام <strong className="text-secondary">1998</strong> بفرع واحد 
               في محافظة الأسياح بمنطقة القصيم، واليوم تمتلك الشركة أكثر من 
-              <strong className="text-secondary"> 95 محطة</strong> في خمسة مناطق وأكثر 
+              <strong className="text-secondary"> 78 محطة</strong> في خمسة مناطق وأكثر 
               من ثلاثين مدينة ومحافظة.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
