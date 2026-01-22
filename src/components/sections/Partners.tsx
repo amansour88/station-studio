@@ -1,15 +1,70 @@
+import { useEffect, useState } from "react";
+
+// Partners from AWS Brandbook - Real company partners
 const partners = [
-  { name: "Saudi Aramco", logo: "سعودي أرامكو" },
-  { name: "Petromin", logo: "بترومين" },
-  { name: "Bank Al Bilad", logo: "بنك البلاد" },
-  { name: "Jeraisy", logo: "الجريسي" },
-  { name: "Mazaya Group", logo: "مجموعة مزايا" },
-  { name: "Ministry of Municipalities", logo: "وزارة البلديات" },
-  { name: "BON Oil", logo: "بون للزيوت" },
-  { name: "AL Seraj Transport", logo: "السراج للنقل" },
+  { 
+    name: "Saudi Aramco", 
+    nameAr: "أرامكو السعودية",
+    description: "شريك الوقود الرئيسي"
+  },
+  { 
+    name: "Petromin", 
+    nameAr: "بترومين",
+    description: "شريك خدمات السيارات"
+  },
+  { 
+    name: "Ministry of Municipalities", 
+    nameAr: "وزارة البلديات",
+    description: "الجهة الرقابية"
+  },
+  { 
+    name: "Bank Al Bilad", 
+    nameAr: "بنك البلاد",
+    description: "الشريك المصرفي"
+  },
+  { 
+    name: "Jeraisy Group", 
+    nameAr: "مجموعة الجريسي",
+    description: "شريك التطوير"
+  },
+  { 
+    name: "Mazaya Group", 
+    nameAr: "مجموعة مزايا",
+    description: "شريك الاستثمار"
+  },
+  { 
+    name: "BON Oil", 
+    nameAr: "بون للزيوت",
+    description: "مورد الزيوت"
+  },
+  { 
+    name: "AL Seraj Transport", 
+    nameAr: "السراج للنقل",
+    description: "شريك اللوجستيات"
+  },
 ];
 
 const Partners = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const section = document.getElementById("partners");
+    if (section) {
+      observer.observe(section);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="partners" className="py-24 bg-background">
       <div className="container px-4">
@@ -33,10 +88,22 @@ const Partners = () => {
           {partners.map((partner, index) => (
             <div
               key={index}
-              className="group bg-card rounded-2xl p-8 shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-300 flex items-center justify-center min-h-[120px]"
+              className={`group bg-card rounded-2xl p-8 shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col items-center justify-center min-h-[160px] cursor-pointer hover:-translate-y-2 ${
+                isVisible ? "animate-fade-in-up" : "opacity-0"
+              }`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <span className="text-xl font-bold text-muted-foreground group-hover:text-primary transition-colors duration-300 text-center">
-                {partner.logo}
+              {/* Partner Name */}
+              <span className="text-xl font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-2">
+                {partner.nameAr}
+              </span>
+              {/* English Name */}
+              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center">
+                {partner.name}
+              </span>
+              {/* Description - appears on hover */}
+              <span className="text-xs text-secondary mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {partner.description}
               </span>
             </div>
           ))}
@@ -44,11 +111,12 @@ const Partners = () => {
 
         {/* Trust Banner */}
         <div className="mt-16 text-center">
-          <div className="inline-flex items-center gap-4 bg-muted rounded-full px-8 py-4">
+          <div className="inline-flex items-center gap-4 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 rounded-full px-8 py-4 border border-secondary/30">
             <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
-            <span className="text-muted-foreground font-medium">
-              موثوق من قبل أكثر من <span className="text-primary font-bold">1000+</span> شريك تجاري
+            <span className="text-foreground font-medium">
+              نفخر بخدمة أكثر من <span className="text-primary font-bold">مليون</span> عميل سنوياً
             </span>
+            <div className="w-3 h-3 bg-secondary rounded-full animate-pulse" />
           </div>
         </div>
       </div>

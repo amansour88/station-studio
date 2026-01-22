@@ -40,16 +40,16 @@ const Footer = () => {
               نقدم خدمات متكاملة بأعلى معايير الجودة.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors duration-300">
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors duration-300">
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors duration-300">
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary transition-colors duration-300">
+              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
                 <Linkedin className="w-5 h-5" />
               </a>
             </div>
@@ -63,7 +63,7 @@ const Footer = () => {
                 <li key={index}>
                   <button
                     onClick={() => scrollToSection(link.href)}
-                    className="text-white/70 hover:text-secondary transition-colors duration-200"
+                    className="text-white/70 hover:text-secondary hover:translate-x-2 transition-all duration-200 inline-block"
                   >
                     {link.name}
                   </button>
@@ -78,7 +78,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {services.map((service, index) => (
                 <li key={index}>
-                  <span className="text-white/70">{service}</span>
+                  <span className="text-white/70 hover:text-secondary transition-colors duration-200 cursor-default">
+                    {service}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -88,20 +90,20 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6 text-secondary">تواصل معنا</h4>
             <ul className="space-y-4">
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-secondary" />
+              <li className="flex items-center gap-3 group">
+                <Phone className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform duration-300" />
                 <a href="tel:920008436" className="text-white/70 hover:text-secondary transition-colors" dir="ltr">
                   920008436
                 </a>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-secondary" />
+              <li className="flex items-center gap-3 group">
+                <Mail className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform duration-300" />
                 <a href="mailto:info@aws.sa" className="text-white/70 hover:text-secondary transition-colors">
                   info@aws.sa
                 </a>
               </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-secondary flex-shrink-0 mt-1" />
+              <li className="flex items-start gap-3 group">
+                <MapPin className="w-5 h-5 text-secondary flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-white/70 text-sm">
                   طريق الملك عبدالله، المدينة المنورة، أبراج غوث، برج 2
                 </span>

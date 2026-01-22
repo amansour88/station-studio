@@ -1,11 +1,11 @@
-import { ArrowLeft, MapPin, Fuel } from "lucide-react";
+import { ArrowLeft, MapPin, Fuel, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import stationHero from "@/assets/station-hero.jpg";
 
 const stats = [
-  { number: "95+", label: "محطة", icon: Fuel },
+  { number: "78", label: "محطة", icon: Fuel },
   { number: "5", label: "مناطق", icon: MapPin },
-  { number: "1998", label: "سنة التأسيس", icon: null },
+  { number: "1998", label: "سنة التأسيس", icon: Calendar },
 ];
 
 const Hero = () => {
@@ -46,10 +46,10 @@ const Hero = () => {
             </span>
           </div>
 
-          {/* Main Heading */}
+          {/* Main Heading - New Slogan */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
-            <span className="block">محطة</span>
-            <span className="text-gradient-gold">وأكثر...</span>
+            <span className="block">نحو رحلة</span>
+            <span className="text-gradient-gold">بلا حدود</span>
           </h1>
 
           {/* Subtitle */}
@@ -62,7 +62,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             <Button
               size="lg"
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold animate-pulse-glow"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold animate-pulse-glow transition-all duration-300 hover:scale-105"
               onClick={() => scrollToSection("#services")}
             >
               اكتشف خدماتنا
@@ -71,7 +71,7 @@ const Hero = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-white/30 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 backdrop-blur-sm"
+              className="border-2 border-white/50 text-white bg-white/10 hover:bg-white hover:text-primary font-bold text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300 hover:scale-105"
               onClick={() => scrollToSection("#contact")}
             >
               تواصل معنا
@@ -83,9 +83,9 @@ const Hero = () => {
             {stats.map((stat, index) => (
               <div 
                 key={index}
-                className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10"
+                className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-secondary/50 transition-all duration-300 hover:scale-105 group"
               >
-                <div className="text-3xl md:text-4xl font-bold text-secondary mb-1">
+                <div className="text-3xl md:text-4xl font-bold text-secondary mb-1 group-hover:scale-110 transition-transform duration-300">
                   {stat.number}
                 </div>
                 <div className="text-white/70 text-sm md:text-base">
