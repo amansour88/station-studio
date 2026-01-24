@@ -183,27 +183,31 @@ const Partners = () => {
           {partners.map((partner, index) => (
             <div
               key={index}
-              className={`group bg-card rounded-2xl p-6 shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col items-center justify-center min-h-[180px] cursor-pointer hover:-translate-y-2 ${
+              className={`group bg-card rounded-2xl shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col cursor-pointer hover:-translate-y-2 overflow-hidden ${
                 isVisible ? "animate-fade-in-up" : "opacity-0"
               }`}
               style={{ animationDelay: `${index * 0.05}s` }}
             >
-              {/* Partner Logo */}
-              <div className="w-24 h-24 flex items-center justify-center mb-4 overflow-hidden rounded-lg bg-white p-2">
+              {/* Partner Logo - Full width image container */}
+              <div className="relative w-full aspect-square overflow-hidden bg-white">
                 <img
                   src={partner.logo}
                   alt={partner.nameAr}
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-125"
                 />
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              {/* Partner Name */}
-              <span className="text-sm font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-1 line-clamp-2">
-                {partner.nameAr}
-              </span>
-              {/* Description - appears on hover */}
-              <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center">
-                {partner.description}
-              </span>
+              {/* Partner Info */}
+              <div className="p-4 text-center">
+                <span className="text-sm font-bold text-primary group-hover:text-secondary transition-colors duration-300 line-clamp-2">
+                  {partner.nameAr}
+                </span>
+                {/* Description - appears on hover */}
+                <span className="block text-xs text-secondary mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-4">
+                  {partner.description}
+                </span>
+              </div>
             </div>
           ))}
         </div>
