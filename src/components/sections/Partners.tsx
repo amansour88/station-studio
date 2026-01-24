@@ -1,78 +1,141 @@
 import { useEffect, useState } from "react";
 
+// Partner logo imports
+import aramcoLogo from "@/assets/aws_broshure_v4_page13_image17.jpg";
+import seyajLogo from "@/assets/aws_broshure_v4_page13_image2.jpg";
+import ministryLogo from "@/assets/aws_broshure_v4_page13_image3.jpg";
+import jeraisyLogo from "@/assets/aws_broshure_v4_page13_image4.jpg";
+import mawakebLogo from "@/assets/aws_broshure_v4_page13_image5.jpg";
+import lucasLogo from "@/assets/aws_broshure_v4_page13_image6.jpg";
+import alrajhiLogo from "@/assets/aws_broshure_v4_page13_image7.jpg";
+import emaraLogo from "@/assets/aws_broshure_v4_page13_image8.jpg";
+import alserajLogo from "@/assets/aws_broshure_v4_page13_image10.jpg";
+import bonLogo from "@/assets/aws_broshure_v4_page13_image11.jpg";
+import snbLogo from "@/assets/aws_broshure_v4_page13_image12.jpg";
+import petrominLogo from "@/assets/aws_broshure_v4_page13_image13.jpg";
+import masajidLogo from "@/assets/aws_broshure_v4_page13_image14.jpg";
+import iskanfamLogo from "@/assets/aws_broshure_v4_page13_image15.jpg";
+import barnsLogo from "@/assets/aws_broshure_v4_page13_image16.jpg";
+import amazonLogo from "@/assets/aws_broshure_v4_page13_image18.jpg";
+import mazayaLogo from "@/assets/aws_broshure_v4_page13_image19.jpg";
+import alfredyLogo from "@/assets/aws_broshure_v4_page13_image1.jpg";
+import partnerLogo9 from "@/assets/aws_broshure_v4_page13_image9.jpg";
+
 // Partners from AWS Brandbook - Real company partners
 const partners = [
-  {
-    name: "Alfredy",
-    nameAr: "الفريدي",
-    description: "شريك الخدمات",
-    logo: "https://images.pexels.com/photos/16066/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "Al Seraj",
-    nameAr: "السراج للنقل",
-    description: "شريك اللوجستيات",
-    logo: "https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "Seyaj",
-    nameAr: "سيّاج",
-    description: "الشريك المالي",
-    logo: "https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "BON",
-    nameAr: "بون",
-    description: "مورد الزيوت",
-    logo: "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "Ministry",
-    nameAr: "وزارة البلديات",
-    description: "الجهة الرقابية",
-    logo: "https://images.pexels.com/photos/8386434/pexels-photo-8386434.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "Al Rajhi",
-    nameAr: "مصرف الراجحي",
-    description: "الشريك المصرفي",
-    logo: "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "SNB",
-    nameAr: "البنك الأهلي السعودي",
-    description: "الشريك المصرفي",
-    logo: "https://images.pexels.com/photos/3944441/pexels-photo-3944441.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
   {
     name: "Saudi Aramco",
     nameAr: "أرامكو السعودية",
     description: "شريك الوقود الرئيسي",
-    logo: "https://images.pexels.com/photos/3807518/pexels-photo-3807518.jpeg?auto=compress&cs=tinysrgb&w=400"
-  },
-  {
-    name: "Amazon",
-    nameAr: "أمازون",
-    description: "شريك التجارة",
-    logo: "https://images.pexels.com/photos/3962286/pexels-photo-3962286.jpeg?auto=compress&cs=tinysrgb&w=400"
+    logo: aramcoLogo
   },
   {
     name: "Petromin",
     nameAr: "بترومين",
     description: "شريك خدمات السيارات",
-    logo: "https://images.pexels.com/photos/3944442/pexels-photo-3944442.jpeg?auto=compress&cs=tinysrgb&w=400"
+    logo: petrominLogo
+  },
+  {
+    name: "Ministry",
+    nameAr: "وزارة البلديات والإسكان",
+    description: "الجهة الرقابية",
+    logo: ministryLogo
+  },
+  {
+    name: "Emara",
+    nameAr: "إمارة المنطقة",
+    description: "الجهة الحكومية",
+    logo: emaraLogo
+  },
+  {
+    name: "Al Rajhi",
+    nameAr: "مصرف الراجحي",
+    description: "الشريك المصرفي",
+    logo: alrajhiLogo
+  },
+  {
+    name: "SNB",
+    nameAr: "البنك الأهلي السعودي",
+    description: "الشريك المصرفي",
+    logo: snbLogo
+  },
+  {
+    name: "Amazon",
+    nameAr: "أمازون",
+    description: "شريك التجارة",
+    logo: amazonLogo
+  },
+  {
+    name: "Mazaya",
+    nameAr: "مجموعة مزايا",
+    description: "شريك الاستثمار",
+    logo: mazayaLogo
+  },
+  {
+    name: "Seyaj",
+    nameAr: "سيّاج",
+    description: "الشريك المالي",
+    logo: seyajLogo
   },
   {
     name: "Lucas",
     nameAr: "لوكاس",
     description: "مزودة الزيوت",
-    logo: "https://images.pexels.com/photos/3807519/pexels-photo-3807519.jpeg?auto=compress&cs=tinysrgb&w=400"
+    logo: lucasLogo
   },
   {
-    name: "Mazaya",
-    nameAr: "مزايا",
-    description: "شريك الاستثمار",
-    logo: "https://images.pexels.com/photos/5632400/pexels-photo-5632400.jpeg?auto=compress&cs=tinysrgb&w=400"
+    name: "Al Seraj",
+    nameAr: "السراج للنقل",
+    description: "شريك اللوجستيات",
+    logo: alserajLogo
+  },
+  {
+    name: "Mawakeb Al-Khair",
+    nameAr: "موكب الخير للنقل",
+    description: "شريك النقل",
+    logo: mawakebLogo
+  },
+  {
+    name: "Jeraisy",
+    nameAr: "مجموعة الجريسي",
+    description: "الشريك التجاري",
+    logo: jeraisyLogo
+  },
+  {
+    name: "BON",
+    nameAr: "بون كافيه",
+    description: "شريك المقاهي",
+    logo: bonLogo
+  },
+  {
+    name: "Barns",
+    nameAr: "بارنز",
+    description: "شريك المقاهي",
+    logo: barnsLogo
+  },
+  {
+    name: "Iskanfam Nayef",
+    nameAr: "اسكانفام نايف",
+    description: "شريك المأكولات",
+    logo: iskanfamLogo
+  },
+  {
+    name: "Masajid",
+    nameAr: "جمعية العناية بمساجد الطرق",
+    description: "شريك المسؤولية الاجتماعية",
+    logo: masajidLogo
+  },
+  {
+    name: "Alfredy",
+    nameAr: "الفريدي",
+    description: "شريك الخدمات",
+    logo: alfredyLogo
+  },
+  {
+    name: "Partner",
+    nameAr: "شريك",
+    description: "شريك استراتيجي",
+    logo: partnerLogo9
   },
 ];
 
@@ -116,27 +179,29 @@ const Partners = () => {
         </div>
 
         {/* Partners Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {partners.map((partner, index) => (
             <div
               key={index}
-              className={`group bg-card rounded-2xl p-8 shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col items-center justify-center min-h-[160px] cursor-pointer hover:-translate-y-2 ${
+              className={`group bg-card rounded-2xl p-6 shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col items-center justify-center min-h-[180px] cursor-pointer hover:-translate-y-2 ${
                 isVisible ? "animate-fade-in-up" : "opacity-0"
               }`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
               {/* Partner Logo */}
-              <img
-                src={partner.logo}
-                alt={partner.nameAr}
-                className="w-20 h-20 object-contain mb-4 group-hover:scale-110 transition-transform duration-300"
-              />
+              <div className="w-24 h-24 flex items-center justify-center mb-4 overflow-hidden rounded-lg bg-white p-2">
+                <img
+                  src={partner.logo}
+                  alt={partner.nameAr}
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
               {/* Partner Name */}
-              <span className="text-lg font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-2">
+              <span className="text-sm font-bold text-primary group-hover:text-secondary transition-colors duration-300 text-center mb-1 line-clamp-2">
                 {partner.nameAr}
               </span>
               {/* Description - appears on hover */}
-              <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center">
                 {partner.description}
               </span>
             </div>
