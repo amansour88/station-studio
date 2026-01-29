@@ -120,17 +120,7 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
         icon: createFlameIcon(isSelected),
       });
 
-      // Create popup content
-      const popupContent = `
-        <div style="min-width: 180px; padding: 8px;">
-          <h4 style="font-weight: bold; margin-bottom: 4px;">${station.name}</h4>
-          <p style="color: #666; font-size: 12px; margin-bottom: 8px;">${station.city || ""} - ${station.region}</p>
-          ${station.phone ? `<a href="tel:${station.phone}" style="color: #8A2F43; font-size: 12px;">${station.phone}</a>` : ""}
-          ${station.google_maps_url ? `<a href="${station.google_maps_url}" target="_blank" style="color: #D4A853; font-size: 12px; margin-left: 8px;">${t("stations.directions")}</a>` : ""}
-        </div>
-      `;
-
-      marker.bindPopup(popupContent);
+      // Only trigger selection, no popup
       marker.on("click", () => onStationSelect(station));
       marker.addTo(map);
 
@@ -158,12 +148,6 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
       const coords = extractCoordinates(selectedStation.google_maps_url);
       if (coords) {
         map.flyTo([coords.lat, coords.lng], 14, { duration: 1 });
-        
-        // Open popup for selected marker
-        const marker = markersRef.current.get(selectedStation.id);
-        if (marker) {
-          marker.openPopup();
-        }
       }
     }
   }, [selectedStation, stationsWithCoords]);
