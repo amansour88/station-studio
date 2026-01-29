@@ -271,76 +271,49 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column - Contact Info & CTA */}
-          <div className="flex flex-col h-full">
-            {/* Contact Info Card */}
-            <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex-1">
-              <h3 className="text-2xl font-bold text-foreground mb-8">
-                معلومات التواصل
-              </h3>
-              
-              <div className="space-y-5">
-                {contactInfo.map((info, index) => (
-                  <a
-                    key={index}
-                    href={info.link}
-                    className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl border border-border/50 hover:shadow-aws hover:border-secondary transition-all duration-300"
-                  >
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <info.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground mb-1">
-                        {info.title}
-                      </h4>
-                      <p className="text-muted-foreground text-sm" dir={info.title === "الهاتف" ? "ltr" : "rtl"}>
-                        {info.value}
-                      </p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-
-              {/* Google Maps */}
-              <div className="mt-6">
-                <h4 className="font-semibold text-foreground mb-3">موقعنا على الخريطة</h4>
-                <div className="rounded-xl overflow-hidden border border-border/50 shadow-aws">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.7368088888!2d39.6135!3d24.4672!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15bdbf8c3e0a8b8d%3A0x1234567890abcdef!2z2LfYsdmK2YIg2KfZhNmF2YTZgyDYudio2K_Yp9mE2YTZhyDYp9mE2YXYr9mK2YbYqSDYp9mE2YXZhtmI2LHYqQ!5e0!3m2!1sar!2ssa!4v1234567890"
-                    width="100%"
-                    height="200"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="موقع شركة اوس للخدمات البترولية"
-                    className="w-full"
-                  />
-                </div>
-              </div>
+          {/* Left Column - Contact Info */}
+          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 h-fit">
+            <h3 className="text-2xl font-bold text-foreground mb-8">
+              معلومات التواصل
+            </h3>
+            
+            <div className="space-y-5">
+              {contactInfo.map((info, index) => (
+                <a
+                  key={index}
+                  href={info.link}
+                  className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl border border-border/50 hover:shadow-aws hover:border-secondary transition-all duration-300"
+                >
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <info.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">
+                      {info.title}
+                    </h4>
+                    <p className="text-muted-foreground text-sm" dir={info.title === "الهاتف" ? "ltr" : "rtl"}>
+                      {info.value}
+                    </p>
+                  </div>
+                </a>
+              ))}
             </div>
 
-            {/* Franchise CTA Card */}
-            <div className="bg-primary rounded-3xl p-8 text-white mt-6">
-              <h4 className="text-xl font-bold mb-3">
-                هل تريد الانضمام لعائلة اوس؟
-              </h4>
-              <p className="text-white/80 mb-5">
-                احصل على امتياز تجاري وابدأ رحلة نجاحك معنا
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-secondary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>دعم فني متكامل</span>
-                </div>
-                <div className="flex items-center gap-3 text-secondary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>تدريب وتأهيل شامل</span>
-                </div>
-                <div className="flex items-center gap-3 text-secondary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>علامة تجارية موثوقة</span>
-                </div>
+            {/* Google Maps */}
+            <div className="mt-6">
+              <h4 className="font-semibold text-foreground mb-3">موقعنا على الخريطة</h4>
+              <div className="rounded-xl overflow-hidden border border-border/50 shadow-aws">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.7368088888!2d39.6135!3d24.4672!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15bdbf8c3e0a8b8d%3A0x1234567890abcdef!2z2LfYsdmK2YIg2KfZhNmF2YTZgyDYudio2K_Yp9mE2YTZhyDYp9mE2YXYr9mK2YbYqSDYp9mE2YXZhtmI2LHYqQ!5e0!3m2!1sar!2ssa!4v1234567890"
+                  width="100%"
+                  height="200"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="موقع شركة اوس للخدمات البترولية"
+                  className="w-full"
+                />
               </div>
             </div>
           </div>
@@ -547,6 +520,34 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                 )}
               </Button>
             </form>
+          </div>
+        </div>
+
+        {/* Full-Width Franchise CTA */}
+        <div className="bg-primary rounded-3xl p-8 md:p-10 text-white mt-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h4 className="text-2xl font-bold mb-3">
+                هل تريد الانضمام لعائلة اوس؟
+              </h4>
+              <p className="text-white/80">
+                احصل على امتياز تجاري وابدأ رحلة نجاحك معنا
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-6">
+              <div className="flex items-center gap-3 text-secondary">
+                <CheckCircle className="w-5 h-5" />
+                <span>دعم فني متكامل</span>
+              </div>
+              <div className="flex items-center gap-3 text-secondary">
+                <CheckCircle className="w-5 h-5" />
+                <span>تدريب وتأهيل شامل</span>
+              </div>
+              <div className="flex items-center gap-3 text-secondary">
+                <CheckCircle className="w-5 h-5" />
+                <span>علامة تجارية موثوقة</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
