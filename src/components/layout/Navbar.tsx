@@ -53,8 +53,8 @@ const Navbar = () => {
           <a href="#home" className="flex items-center group flex-shrink-0">
             <Logo 
               variant={isScrolled ? "default" : "default"} 
-              size="lg" 
-              className="transition-transform duration-300 group-hover:scale-105"
+              size="xl" 
+              className="transition-transform duration-300 group-hover:scale-105 h-20"
             />
           </a>
 
