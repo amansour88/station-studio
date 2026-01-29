@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { Phone, Mail, MapPin, Send, CheckCircle, Upload, X, Briefcase, MessageSquare, AlertTriangle, Building2 } from "lucide-react";
+import { Phone, Mail, MapPin, Send, CheckCircle, Upload, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { z } from "zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const contactSchema = z.object({
@@ -17,10 +24,10 @@ const contactSchema = z.object({
 });
 
 const contactTypes = [
-  { id: "general", label: "استفسار عام", icon: MessageSquare, description: "لديك سؤال أو استفسار" },
-  { id: "complaint", label: "شكوى", icon: AlertTriangle, description: "تقديم شكوى أو ملاحظة" },
-  { id: "job_application", label: "التقديم على وظيفة", icon: Briefcase, description: "إرسال السيرة الذاتية" },
-  { id: "investor", label: "خدمات المستثمرين", icon: Building2, description: "فرص الاستثمار والامتياز" },
+  { id: "general", label: "استفسار عام" },
+  { id: "complaint", label: "شكوى" },
+  { id: "job_application", label: "التقديم على وظيفة" },
+  { id: "investor", label: "خدمات المستثمرين" },
 ];
 
 const investorServices = [
@@ -84,7 +91,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           variant: "destructive",
@@ -93,7 +99,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         });
         return;
       }
-      // Validate file type
       const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
       if (!allowedTypes.includes(file.type)) {
         toast({
@@ -148,7 +153,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
       return;
     }
 
-    // Validate investor service type
     if (contactType === "investor" && !serviceType) {
       toast({
         variant: "destructive",
@@ -162,7 +166,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
     let attachmentUrl: string | null = null;
 
     try {
-      // Upload attachment if exists
       if (attachment) {
         setIsUploading(true);
         attachmentUrl = await uploadFile(attachment);
@@ -172,7 +175,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         }
       }
 
-      // Build subject based on type
       let subject = formData.city ? `من ${formData.city}` : null;
       if (contactType === "investor" && serviceType) {
         const serviceName = investorServices.find(s => s.id === serviceType)?.label;
@@ -201,7 +203,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         description: "سنتواصل معك في أقرب وقت ممكن",
       });
 
-      // Reset form
       setFormData({
         name: "",
         email: "",
@@ -269,110 +270,125 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-2xl font-bold text-foreground mb-8">
-              معلومات التواصل
-            </h3>
-            
-            <div className="space-y-6 mb-10">
-              {contactInfo.map((info, index) => (
-                <a
-                  key={index}
-                  href={info.link}
-                  className="flex items-start gap-4 p-4 bg-card rounded-xl shadow-sm border border-border/50 hover:shadow-aws hover:border-secondary transition-all duration-300"
-                >
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <info.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">
-                      {info.title}
-                    </h4>
-                    <p className="text-muted-foreground" dir={info.title === "الهاتف" ? "ltr" : "rtl"}>
-                      {info.value}
-                    </p>
-                  </div>
-                </a>
-              ))}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column - Contact Info & CTA */}
+          <div className="flex flex-col h-full">
+            {/* Contact Info Card */}
+            <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex-1">
+              <h3 className="text-2xl font-bold text-foreground mb-8">
+                معلومات التواصل
+              </h3>
+              
+              <div className="space-y-5">
+                {contactInfo.map((info, index) => (
+                  <a
+                    key={index}
+                    href={info.link}
+                    className="flex items-start gap-4 p-4 bg-muted/50 rounded-xl border border-border/50 hover:shadow-aws hover:border-secondary transition-all duration-300"
+                  >
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <info.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">
+                        {info.title}
+                      </h4>
+                      <p className="text-muted-foreground text-sm" dir={info.title === "الهاتف" ? "ltr" : "rtl"}>
+                        {info.value}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
 
-            {/* Franchise CTA */}
-            <div className="bg-primary rounded-2xl p-6 text-white">
-              <h4 className="text-xl font-bold mb-2">
+            {/* Franchise CTA Card */}
+            <div className="bg-primary rounded-3xl p-8 text-white mt-6">
+              <h4 className="text-xl font-bold mb-3">
                 هل تريد الانضمام لعائلة اوس؟
               </h4>
-              <p className="text-white/80 mb-4">
+              <p className="text-white/80 mb-5">
                 احصل على امتياز تجاري وابدأ رحلة نجاحك معنا
               </p>
-              <div className="flex items-center gap-2 text-secondary">
-                <CheckCircle className="w-5 h-5" />
-                <span>دعم فني متكامل</span>
-              </div>
-              <div className="flex items-center gap-2 text-secondary mt-2">
-                <CheckCircle className="w-5 h-5" />
-                <span>تدريب وتأهيل شامل</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-secondary">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>دعم فني متكامل</span>
+                </div>
+                <div className="flex items-center gap-3 text-secondary">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>تدريب وتأهيل شامل</span>
+                </div>
+                <div className="flex items-center gap-3 text-secondary">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>علامة تجارية موثوقة</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Contact Form */}
-          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50">
+          {/* Right Column - Contact Form */}
+          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 h-fit">
             <h3 className="text-2xl font-bold text-foreground mb-6">
               أرسل لنا رسالة
             </h3>
             
-            {/* Contact Type Selector */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {contactTypes.map((type) => (
-                <button
-                  key={type.id}
-                  type="button"
-                  onClick={() => {
-                    setContactType(type.id);
-                    if (type.id !== "investor") setServiceType("");
-                  }}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300",
-                    contactType === type.id
-                      ? "border-secondary bg-secondary/10 text-secondary"
-                      : "border-border bg-muted/30 text-muted-foreground hover:border-secondary/50"
-                  )}
-                >
-                  <type.icon className="w-6 h-6" />
-                  <span className="font-medium text-sm">{type.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Investor Service Type */}
-            {contactType === "investor" && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-foreground mb-3">
-                  نوع الخدمة المطلوبة *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {investorServices.map((service) => (
-                    <button
-                      key={service.id}
-                      type="button"
-                      onClick={() => setServiceType(service.id)}
-                      className={cn(
-                        "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300",
-                        serviceType === service.id
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-muted text-muted-foreground hover:bg-secondary/20"
-                      )}
-                    >
-                      {service.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Message Type Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  نوع الرسالة *
+                </label>
+                <Select
+                  value={contactType}
+                  onValueChange={(value) => {
+                    setContactType(value);
+                    if (value !== "investor") setServiceType("");
+                  }}
+                >
+                  <SelectTrigger className="bg-muted/50 border-border focus:border-secondary h-12">
+                    <SelectValue placeholder="اختر نوع الرسالة" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border z-50">
+                    {contactTypes.map((type) => (
+                      <SelectItem 
+                        key={type.id} 
+                        value={type.id}
+                        className="hover:bg-muted cursor-pointer"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Investor Service Type Dropdown */}
+              {contactType === "investor" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    نوع الخدمة المطلوبة *
+                  </label>
+                  <Select value={serviceType} onValueChange={setServiceType}>
+                    <SelectTrigger className="bg-muted/50 border-border focus:border-secondary h-12">
+                      <SelectValue placeholder="اختر نوع الخدمة" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border z-50">
+                      {investorServices.map((service) => (
+                        <SelectItem 
+                          key={service.id} 
+                          value={service.id}
+                          className="hover:bg-muted cursor-pointer"
+                        >
+                          {service.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Name & Email Row */}
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -384,7 +400,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                     onChange={handleChange}
                     placeholder="أدخل اسمك"
                     required
-                    className={`bg-muted/50 border-border focus:border-secondary ${errors.name ? 'border-destructive' : ''}`}
+                    className={`bg-muted/50 border-border focus:border-secondary h-12 ${errors.name ? 'border-destructive' : ''}`}
                   />
                   {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
                 </div>
@@ -400,12 +416,13 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                     placeholder="example@email.com"
                     required
                     dir="ltr"
-                    className={`bg-muted/50 border-border focus:border-secondary text-left ${errors.email ? 'border-destructive' : ''}`}
+                    className={`bg-muted/50 border-border focus:border-secondary text-left h-12 ${errors.email ? 'border-destructive' : ''}`}
                   />
                   {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
                 </div>
               </div>
 
+              {/* Phone & City Row */}
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -419,7 +436,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                     placeholder="05xxxxxxxx"
                     required
                     dir="ltr"
-                    className={`bg-muted/50 border-border focus:border-secondary text-left ${errors.phone ? 'border-destructive' : ''}`}
+                    className={`bg-muted/50 border-border focus:border-secondary text-left h-12 ${errors.phone ? 'border-destructive' : ''}`}
                   />
                   {errors.phone && <p className="text-destructive text-xs mt-1">{errors.phone}</p>}
                 </div>
@@ -432,11 +449,12 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="المدينة"
-                    className="bg-muted/50 border-border focus:border-secondary"
+                    className="bg-muted/50 border-border focus:border-secondary h-12"
                   />
                 </div>
               </div>
 
+              {/* Message */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   رسالتك *
@@ -447,7 +465,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                   onChange={handleChange}
                   placeholder={getPlaceholderMessage()}
                   required
-                  rows={5}
+                  rows={4}
                   className={`bg-muted/50 border-border focus:border-secondary resize-none ${errors.message ? 'border-destructive' : ''}`}
                 />
                 {errors.message && <p className="text-destructive text-xs mt-1">{errors.message}</p>}
