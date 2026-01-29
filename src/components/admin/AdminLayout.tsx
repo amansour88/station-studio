@@ -29,6 +29,7 @@ const navItems = [
   { name: "الهيرو", href: "/admin/hero", icon: Image },
   { name: "من نحن", href: "/admin/about", icon: Info },
   { name: "الخدمات", href: "/admin/services", icon: Wrench },
+  { name: "المناطق", href: "/admin/regions", icon: MapPin },
   { name: "المحطات", href: "/admin/stations", icon: MapPin },
   { name: "الشركاء", href: "/admin/partners", icon: Users },
   { name: "الرسائل", href: "/admin/messages", icon: MessageSquare },
