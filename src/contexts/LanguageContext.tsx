@@ -77,6 +77,8 @@ const translations: Record<Language, Record<string, string>> = {
     "stations.selectStation": "اختر محطة",
     "stations.selectStationDesc": "اختر محطة من القائمة لعرض موقعها على الخريطة",
     "stations.directions": "الاتجاهات",
+    "stations.loadingMap": "جاري تحميل الخريطة...",
+    "stations.noStationsOnMap": "لا توجد محطات بإحداثيات متوفرة",
 
     // Partners
     "partners.label": "شركاؤنا",
@@ -204,6 +206,8 @@ const translations: Record<Language, Record<string, string>> = {
     "stations.selectStation": "Select a Station",
     "stations.selectStationDesc": "Choose a station from the list to view its location on the map",
     "stations.directions": "Directions",
+    "stations.loadingMap": "Loading map...",
+    "stations.noStationsOnMap": "No stations with coordinates available",
 
     // Partners
     "partners.label": "Our Partners",
