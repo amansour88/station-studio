@@ -48,7 +48,7 @@ const Navbar = () => {
       )}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
           {/* Logo */}
           <a href="#home" className="flex items-center group flex-shrink-0">
             <Logo 
@@ -58,8 +58,8 @@ const Navbar = () => {
             />
           </a>
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 mx-8">
+          {/* Desktop Navigation - Perfectly Centered */}
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2">
             <div className="flex items-center gap-1">
               {navLinks.map((link) => (
                 <button
@@ -89,7 +89,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Phone, Language Switcher & CTA Button */}
+          {/* Phone, CTA Button & Language Switcher */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <a 
               href="tel:920008436" 
@@ -101,7 +101,6 @@ const Navbar = () => {
               <Phone className="w-5 h-5" />
               <span dir="ltr">920008436</span>
             </a>
-            <LanguageSwitcher isScrolled={isScrolled} />
             <Button 
               variant="secondary"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold shadow-gold transition-all duration-300 hover:scale-105 hover:shadow-gold-lg"
@@ -109,6 +108,7 @@ const Navbar = () => {
             >
               {t("nav.contact")}
             </Button>
+            <LanguageSwitcher isScrolled={isScrolled} />
           </div>
 
           {/* Mobile Menu Button */}
