@@ -50,7 +50,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#home" className="flex items-center group">
+          <a href="#home" className="flex items-center group flex-shrink-0">
             <Logo 
               variant={isScrolled ? "default" : "default"} 
               size="lg" 
@@ -58,38 +58,39 @@ const Navbar = () => {
             />
           </a>
 
-          {/* Desktop Navigation - All in one row */}
-          <div className="hidden lg:flex items-center gap-2">
-            {navLinks.map((link) => (
-              <button
-                key={link.name}
-                onClick={() => scrollToSection(link.href)}
-                className={cn(
-                  "relative px-5 py-2.5 text-base font-semibold rounded-lg transition-all duration-300 group",
-                  isScrolled 
-                    ? activeLink === link.href
-                      ? "text-primary bg-primary/10"
-                      : "text-foreground hover:text-primary hover:bg-primary/5"
-                    : activeLink === link.href
-                      ? "text-secondary bg-white/10"
-                      : "text-white hover:text-secondary hover:bg-white/10"
-                )}
-              >
-                {link.name}
-                {/* Animated underline */}
-                <span 
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden lg:flex items-center justify-center flex-1 mx-8">
+            <div className="flex items-center gap-1">
+              {navLinks.map((link) => (
+                <button
+                  key={link.name}
+                  onClick={() => scrollToSection(link.href)}
                   className={cn(
-                    "absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-secondary rounded-full transition-all duration-300",
-                    activeLink === link.href ? "w-8" : "w-0 group-hover:w-8"
+                    "relative px-4 py-2.5 text-base font-semibold rounded-lg transition-all duration-300 group",
+                    isScrolled 
+                      ? activeLink === link.href
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:text-primary hover:bg-primary/5"
+                      : activeLink === link.href
+                        ? "text-secondary bg-white/10"
+                        : "text-white hover:text-secondary hover:bg-white/10"
                   )}
-                />
-              </button>
-            ))}
+                >
+                  {link.name}
+                  {/* Animated underline */}
+                  <span 
+                    className={cn(
+                      "absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-secondary rounded-full transition-all duration-300",
+                      activeLink === link.href ? "w-8" : "w-0 group-hover:w-8"
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Language Switcher & CTA Button */}
-          <div className="hidden lg:flex items-center gap-4">
-            <LanguageSwitcher isScrolled={isScrolled} />
+          {/* Phone, Language Switcher & CTA Button */}
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <a 
               href="tel:920008436" 
               className={cn(
@@ -100,6 +101,7 @@ const Navbar = () => {
               <Phone className="w-5 h-5" />
               <span dir="ltr">920008436</span>
             </a>
+            <LanguageSwitcher isScrolled={isScrolled} />
             <Button 
               variant="secondary"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold shadow-gold transition-all duration-300 hover:scale-105 hover:shadow-gold-lg"

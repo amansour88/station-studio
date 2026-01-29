@@ -170,9 +170,9 @@ const Stations = () => {
           </div>
 
           {/* Map + List Container */}
-          <div className="grid lg:grid-cols-2 min-h-[600px]">
+          <div className="grid lg:grid-cols-2 min-h-[450px]">
             {/* Stations List */}
-            <div className={`border-b lg:border-b-0 ${language === "ar" ? "lg:border-l" : "lg:border-r"} border-border/50 overflow-y-auto max-h-[400px] lg:max-h-[600px]`}>
+            <div className={`border-b lg:border-b-0 ${language === "ar" ? "lg:border-l" : "lg:border-r"} border-border/50 overflow-y-auto max-h-[350px] lg:max-h-[450px]`}>
               <div className="p-4 border-b border-border/50 bg-muted/20 sticky top-0 z-10">
                 <h3 className="font-bold text-foreground flex items-center gap-2">
                   <img src={logoFlame} alt="AWS" className="w-5 h-5" />
@@ -262,7 +262,7 @@ const Stations = () => {
             {/* Interactive Map with Leaflet */}
             <div className="relative bg-muted/20">
               <Suspense fallback={
-                <div className="w-full h-full min-h-[400px] lg:min-h-[600px] flex items-center justify-center">
+                <div className="w-full h-full min-h-[350px] lg:min-h-[450px] flex items-center justify-center">
                   <div className="text-center">
                     <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
                     <p className="text-muted-foreground">{t("stations.loadingMap")}</p>
