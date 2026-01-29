@@ -126,9 +126,9 @@ const Hero = () => {
               size="lg"
               variant="outline"
               className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-bold text-lg px-8 py-6 transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection("#contact")}
+              onClick={() => scrollToSection("#services")}
             >
-              {t("nav.contact")}
+              {t("hero.cta")}
             </Button>
           </div>
 
