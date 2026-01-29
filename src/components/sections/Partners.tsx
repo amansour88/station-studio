@@ -163,7 +163,7 @@ const Partners = () => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="flex gap-6">
+            <div className="flex gap-6" style={{ direction: "ltr" }}>
               {partners.map((partner, index) => (
                 <div
                   key={index}
