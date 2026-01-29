@@ -75,8 +75,8 @@ const Hero = () => {
           {isLoading ? (
             <Skeleton className="h-20 w-3/4 mx-auto mb-6 bg-white/10" />
           ) : (
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
-              <span className="block">نحو رحلة</span>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
+              <span>نحو رحلة </span>
               <span className="text-gradient-gold">بلا حدود</span>
             </h1>
           )}
