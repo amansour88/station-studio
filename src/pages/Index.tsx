@@ -7,6 +7,7 @@ import Partners from "@/components/sections/Partners";
 import FranchiseCTA from "@/components/sections/FranchiseCTA";
 import Contact from "@/components/sections/Contact";
 import Footer from "@/components/layout/Footer";
+import AdminButton from "@/components/ui/AdminButton";
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
         <Contact />
       </main>
       <Footer />
+      <AdminButton />
     </div>
   );
 };
