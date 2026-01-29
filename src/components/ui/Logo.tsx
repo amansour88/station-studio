@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import logoAws from "@/assets/logo-aws.png";
+import logoAwsNew from "@/assets/logo-aws-new.png";
 import logoFlame from "@/assets/logo-flame.png";
 
 interface LogoProps {
@@ -30,30 +30,13 @@ const Logo = forwardRef<HTMLImageElement, LogoProps>(
       );
     }
 
-    // For default and dark variants, use the full logo
-    if (variant === "default" || variant === "dark") {
-      return (
-        <img
-          ref={ref}
-          src={logoAws}
-          alt="اوس للخدمات البترولية - AWS Petroleum Services"
-          className={cn(sizeClasses[size], "w-auto", className)}
-        />
-      );
-    }
-
-    // For white variant, use the logo with a filter for white appearance
-    // or fallback to the regular logo on dark backgrounds
+    // For all other variants, use the new full logo
     return (
       <img
         ref={ref}
-        src={logoAws}
+        src={logoAwsNew}
         alt="اوس للخدمات البترولية - AWS Petroleum Services"
-        className={cn(
-          sizeClasses[size], 
-          "w-auto brightness-0 invert",
-          className
-        )}
+        className={cn(sizeClasses[size], "w-auto", className)}
       />
     );
   }
