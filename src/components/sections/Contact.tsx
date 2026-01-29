@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Phone, Mail, MapPin, Send, CheckCircle, Upload, X, ChevronDown } from "lucide-react";
+import { Phone, Mail, MapPin, Send, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -520,34 +520,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                 )}
               </Button>
             </form>
-          </div>
-        </div>
-
-        {/* Full-Width Franchise CTA */}
-        <div className="bg-primary rounded-3xl p-8 md:p-10 text-white mt-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h4 className="text-2xl font-bold mb-3">
-                هل تريد الانضمام لعائلة اوس؟
-              </h4>
-              <p className="text-white/80">
-                احصل على امتياز تجاري وابدأ رحلة نجاحك معنا
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-6">
-              <div className="flex items-center gap-3 text-secondary">
-                <CheckCircle className="w-5 h-5" />
-                <span>دعم فني متكامل</span>
-              </div>
-              <div className="flex items-center gap-3 text-secondary">
-                <CheckCircle className="w-5 h-5" />
-                <span>تدريب وتأهيل شامل</span>
-              </div>
-              <div className="flex items-center gap-3 text-secondary">
-                <CheckCircle className="w-5 h-5" />
-                <span>علامة تجارية موثوقة</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
