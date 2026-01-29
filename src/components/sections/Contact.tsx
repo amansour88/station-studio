@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
+  email: z.string().trim().email("البريد الإلكتروني غير صحيح").max(255),
+  phone: z.string().trim().min(10, "رقم الجوال غير صحيح").max(20),
+  city: z.string().max(100).optional(),
+  message: z.string().trim().min(10, "الرسالة يجب أن تكون 10 أحرف على الأقل").max(1000),
+});
 
 const contactInfo = [
   {
@@ -36,34 +46,71 @@ const Contact = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Clear error when user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: "" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    // Validate
+    const result = contactSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const { error } = await supabase.from("contact_messages").insert({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        subject: formData.city ? `من ${formData.city}` : null,
+        message: formData.message.trim(),
+      });
 
-    toast({
-      title: "تم إرسال رسالتك بنجاح!",
-      description: "سنتواصل معك في أقرب وقت ممكن",
-    });
+      if (error) throw error;
 
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      city: "",
-      message: "",
-    });
-    setIsSubmitting(false);
+      toast({
+        title: "تم إرسال رسالتك بنجاح!",
+        description: "سنتواصل معك في أقرب وقت ممكن",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        city: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -150,8 +197,9 @@ const Contact = () => {
                     onChange={handleChange}
                     placeholder="أدخل اسمك"
                     required
-                    className="bg-muted/50 border-border focus:border-secondary"
+                    className={`bg-muted/50 border-border focus:border-secondary ${errors.name ? 'border-destructive' : ''}`}
                   />
+                  {errors.name && <p className="text-destructive text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -165,8 +213,9 @@ const Contact = () => {
                     placeholder="example@email.com"
                     required
                     dir="ltr"
-                    className="bg-muted/50 border-border focus:border-secondary text-left"
+                    className={`bg-muted/50 border-border focus:border-secondary text-left ${errors.email ? 'border-destructive' : ''}`}
                   />
+                  {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
                 </div>
               </div>
 
@@ -183,8 +232,9 @@ const Contact = () => {
                     placeholder="05xxxxxxxx"
                     required
                     dir="ltr"
-                    className="bg-muted/50 border-border focus:border-secondary text-left"
+                    className={`bg-muted/50 border-border focus:border-secondary text-left ${errors.phone ? 'border-destructive' : ''}`}
                   />
+                  {errors.phone && <p className="text-destructive text-xs mt-1">{errors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -211,8 +261,9 @@ const Contact = () => {
                   placeholder="اكتب رسالتك هنا..."
                   required
                   rows={5}
-                  className="bg-muted/50 border-border focus:border-secondary resize-none"
+                  className={`bg-muted/50 border-border focus:border-secondary resize-none ${errors.message ? 'border-destructive' : ''}`}
                 />
+                {errors.message && <p className="text-destructive text-xs mt-1">{errors.message}</p>}
               </div>
 
               <Button
