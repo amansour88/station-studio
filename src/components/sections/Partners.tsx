@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +52,6 @@ const fallbackPartners = [
 
 const Partners = () => {
   const { t, language } = useLanguage();
-  const [isPaused, setIsPaused] = useState(false);
 
   // Fetch partners from database
   const { data: dbPartners, isLoading } = useQuery({
@@ -79,6 +78,10 @@ const Partners = () => {
       }))
     : fallbackPartners;
 
+  useEffect(() => {
+    console.log("[Partners] items:", partners.length, "loading:", isLoading);
+  }, [partners.length, isLoading]);
+
   // Embla Carousel with autoplay
   // Important: Page is RTL in Arabic; keep the viewport dir="ltr" and let Embla control direction
   const emblaOptions = useMemo(
@@ -94,32 +97,20 @@ const Partners = () => {
     [language],
   );
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    emblaOptions,
-    [
+  // Memoize autoplay plugin to prevent re-init loops (which caused rapid dot flashing and weird swipe)
+  const autoplay = useMemo(
+    () =>
       Autoplay({
-        delay: 2000,
+        delay: 2500,
         stopOnInteraction: false,
         stopOnMouseEnter: true,
       }),
-    ]
+    [],
   );
 
-  const handleMouseEnter = useCallback(() => {
-    setIsPaused(true);
-    if (emblaApi) {
-      const autoplayPlugin = emblaApi.plugins()?.autoplay as { stop?: () => void } | undefined;
-      if (autoplayPlugin?.stop) autoplayPlugin.stop();
-    }
-  }, [emblaApi]);
+  const plugins = useMemo(() => [autoplay], [autoplay]);
 
-  const handleMouseLeave = useCallback(() => {
-    setIsPaused(false);
-    if (emblaApi) {
-      const autoplayPlugin = emblaApi.plugins()?.autoplay as { play?: () => void } | undefined;
-      if (autoplayPlugin?.play) autoplayPlugin.play();
-    }
-  }, [emblaApi]);
+  const [emblaRef] = useEmblaCarousel(emblaOptions, plugins);
 
   // Render immediately (no IntersectionObserver) to avoid cards staying hidden
 
@@ -152,11 +143,8 @@ const Partners = () => {
           <div 
             className="overflow-hidden" 
             ref={emblaRef}
-            dir="ltr"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
           >
-            <div className="flex gap-6" style={{ direction: "ltr" }}>
+            <div className="flex gap-6">
               {partners.map((partner, index) => (
                 <div
                   key={`${partner.name}-${index}`}
@@ -169,6 +157,8 @@ const Partners = () => {
                       src={partner.logo}
                       alt={partner.nameAr}
                       loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
                       className="max-w-full max-h-full object-contain transition-transform duration-500 ease-out group-hover:scale-110"
                       onError={(e) => {
                         const fallback = fallbackPartners[0].logo;
@@ -191,12 +181,6 @@ const Partners = () => {
             </div>
           </div>
         )}
-
-        {/* Carousel Indicators */}
-        <div className="flex justify-center gap-2 mt-8">
-          <div className={`w-3 h-3 rounded-full transition-colors duration-300 ${!isPaused ? 'bg-secondary animate-pulse' : 'bg-muted'}`} />
-          <div className={`w-3 h-3 rounded-full transition-colors duration-300 ${isPaused ? 'bg-secondary' : 'bg-muted'}`} />
-        </div>
       </div>
     </section>
   );
