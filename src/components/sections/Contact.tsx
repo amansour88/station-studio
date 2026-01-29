@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
@@ -63,6 +64,7 @@ interface ContactProps {
 }
 
 const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [contactType, setContactType] = useState(defaultType || "general");
   const [serviceType, setServiceType] = useState(defaultServiceType || "");
@@ -258,15 +260,15 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
-            تواصل معنا
+            {t("contact.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            نحن هنا
-            <span className="text-primary"> لمساعدتك</span>
+            {t("contact.title")}
+            <span className="text-primary"> {t("contact.titleHighlight")}</span>
           </h2>
           <div className="section-divider mx-auto mb-6" />
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            سواء كنت ترغب في الاستثمار معنا أو لديك استفسار، نحن سعداء بالتواصل معك
+            {t("contact.description")}
           </p>
         </div>
 
@@ -274,7 +276,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
           {/* Left Column - Contact Info */}
           <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex flex-col">
             <h3 className="text-2xl font-bold text-foreground mb-8">
-              معلومات التواصل
+              {t("contact.info")}
             </h3>
             
             <div className="space-y-5 flex-1">
@@ -301,7 +303,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
 
             {/* Google Maps */}
             <div className="mt-6">
-              <h4 className="font-semibold text-foreground mb-3">موقعنا على الخريطة</h4>
+              <h4 className="font-semibold text-foreground mb-3">{t("contact.mapTitle")}</h4>
               <div className="rounded-xl overflow-hidden border border-border/50 shadow-aws">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.7368088888!2d39.6135!3d24.4672!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15bdbf8c3e0a8b8d%3A0x1234567890abcdef!2z2LfYsdmK2YIg2KfZhNmF2YTZgyDYudio2K_Yp9mE2YTZhyDYp9mE2YXYr9mK2YbYqSDYp9mE2YXZhtmI2LHYqQ!5e0!3m2!1sar!2ssa!4v1234567890"
@@ -321,7 +323,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
           {/* Right Column - Contact Form */}
           <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex flex-col">
             <h3 className="text-2xl font-bold text-foreground mb-6">
-              أرسل لنا رسالة
+              {t("contact.sendMessage")}
             </h3>
             
             <form onSubmit={handleSubmit} className="space-y-5">

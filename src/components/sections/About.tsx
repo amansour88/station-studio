@@ -3,31 +3,34 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationDay from "@/assets/station-day.jpg";
-
-const defaultValues = [
-  {
-    icon: Award,
-    title: "التميز",
-    description: "نلتزم بأعلى معايير الجودة في كل قطرة وقود وكل خدمة نقدمها",
-  },
-  {
-    icon: Target,
-    title: "الابتكار",
-    description: "نستخدم أحدث التقنيات لتحسين تجربة عملائنا وكفاءة خدماتنا",
-  },
-  {
-    icon: Users,
-    title: "المجتمع",
-    description: "شريك فاعل في تنمية المجتمع السعودي ودعم رؤية 2030",
-  },
-  {
-    icon: Shield,
-    title: "النزاهة",
-    description: "الشفافية والأمانة هي أساس تعاملنا مع جميع شركائنا وعملائنا",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const About = () => {
+  const { t, language } = useLanguage();
+
+  const defaultValues = [
+    {
+      icon: Award,
+      title: t("about.excellence"),
+      description: t("about.excellenceDesc"),
+    },
+    {
+      icon: Target,
+      title: t("about.innovation"),
+      description: t("about.innovationDesc"),
+    },
+    {
+      icon: Users,
+      title: t("about.community"),
+      description: t("about.communityDesc"),
+    },
+    {
+      icon: Shield,
+      title: t("about.integrity"),
+      description: t("about.integrityDesc"),
+    },
+  ];
+
   const { data: aboutData, isLoading } = useQuery({
     queryKey: ["about-section"],
     queryFn: async () => {
@@ -44,14 +47,13 @@ const About = () => {
   // Parse content into paragraphs
   const content = aboutData?.content || "";
   const paragraphs = content.split("\n\n").filter(Boolean);
-  const title = aboutData?.title || "من نحن";
   const imageUrl = aboutData?.image_url || stationDay;
 
-  // Default paragraphs if no content
+  // Default paragraphs if no content - use translations
   const defaultParagraphs = [
-    'تعتبر شركة <strong class="text-primary">اوس للخدمات البترولية</strong> شركة رائدة في مجالات الطاقة، وتتمتع بالخبرة والكفاءة في تقديم وترويج الخدمات البترولية ومراكز الخدمة على الطريق.',
-    'نشأت الشركة عام <strong class="text-secondary">1998</strong> بفرع واحد في محافظة الأسياح بمنطقة القصيم، واليوم تمتلك الشركة أكثر من <strong class="text-secondary">78 محطة</strong> في خمسة مناطق وأكثر من ثلاثين مدينة ومحافظة.',
-    'تهدف الشركة دائماً إلى تحقيق أعلى معايير الجودة والكفاءة المتسارعة، مع الالتزام برؤية المملكة 2030 في تطوير البنية التحتية.',
+    t("about.paragraph1"),
+    t("about.paragraph2"),
+    t("about.paragraph3"),
   ];
 
   const displayParagraphs = paragraphs.length > 0 ? paragraphs : defaultParagraphs;
@@ -62,11 +64,11 @@ const About = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
-            عن اوس
+            {t("about.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            قصة نجاح سعودية
-            <span className="text-primary"> منذ 1998</span>
+            {t("about.title")}
+            <span className="text-primary"> {t("about.titleHighlight")}</span>
           </h2>
           <div className="section-divider mx-auto" />
         </div>
@@ -80,21 +82,21 @@ const About = () => {
               <div className="relative rounded-3xl overflow-hidden shadow-aws-lg">
                 <img
                   src={imageUrl}
-                  alt="محطة اوس"
+                  alt={language === "ar" ? "محطة اوس" : "AWS Station"}
                   className="w-full h-[400px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
               </div>
             )}
             {/* Floating Card */}
-            <div className="absolute -bottom-8 -left-8 bg-card rounded-2xl shadow-aws-lg p-6 max-w-xs">
-              <div className="text-4xl font-bold text-primary mb-2">+25</div>
-              <div className="text-muted-foreground">عاماً من الخبرة والتميز في خدمة المملكة</div>
+            <div className={`absolute -bottom-8 ${language === "ar" ? "-left-8" : "-right-8"} bg-card rounded-2xl shadow-aws-lg p-6 max-w-xs`}>
+              <div className="text-4xl font-bold text-primary mb-2">{t("about.experience")}</div>
+              <div className="text-muted-foreground">{t("about.experienceText")}</div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="lg:pr-8">
+          <div className={language === "ar" ? "lg:pr-8" : "lg:pl-8"}>
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-6 w-full" />

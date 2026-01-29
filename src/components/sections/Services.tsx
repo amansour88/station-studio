@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import stationPumps from "@/assets/station-pumps.jpg";
 import carService from "@/assets/car-service.jpg";
 import supermarket from "@/assets/supermarket.jpg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Icon mapping for dynamic icon rendering
 const iconMap: Record<string, LucideIcon> = {
@@ -77,6 +78,20 @@ const investorServices = [
 ];
 
 const Services = () => {
+  const { t, language } = useLanguage();
+  
+  const investorServices = language === "ar" 
+    ? [
+        { label: "إدارة المحطات", type: "station_management" },
+        { label: "الامتياز التجاري", type: "franchise" },
+        { label: "تأجير المرافق", type: "facility_rental" },
+      ]
+    : [
+        { label: "Station Management", type: "station_management" },
+        { label: "Franchise", type: "franchise" },
+        { label: "Facility Rental", type: "facility_rental" },
+      ];
+
   const { data: services, isLoading } = useQuery({
     queryKey: ["services"],
     queryFn: async () => {
@@ -92,14 +107,11 @@ const Services = () => {
   });
 
   const scrollToContact = (serviceType: string) => {
-    // Navigate to contact section with service type
     const contactSection = document.querySelector("#contact");
     if (contactSection) {
       contactSection.scrollIntoView({ behavior: "smooth" });
-      // Store the selected service type for the contact form
       sessionStorage.setItem("selectedServiceType", serviceType);
       sessionStorage.setItem("contactType", "investor");
-      // Dispatch custom event to notify contact form
       window.dispatchEvent(new CustomEvent("investorServiceSelected", { detail: { serviceType } }));
     }
   };
@@ -112,15 +124,15 @@ const Services = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
-            خدماتنا
+            {t("services.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            خدمات متكاملة
-            <span className="text-primary"> تحت سقف واحد</span>
+            {t("services.title")}
+            <span className="text-primary"> {t("services.titleHighlight")}</span>
           </h2>
           <div className="section-divider mx-auto mb-6" />
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            نقدم مجموعة شاملة من الخدمات لضمان راحتك وسلامة مركبتك
+            {t("services.description")}
           </p>
         </div>
 
@@ -190,11 +202,12 @@ const Services = () => {
           
           <div className="relative z-10 text-center">
             <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              خدمات للمستثمرين
+              {language === "ar" ? "خدمات للمستثمرين" : "Investor Services"}
             </h3>
             <p className="text-white/80 max-w-2xl mx-auto mb-6">
-              نقدم أيضاً خدمات مميزة للمستثمرين تشمل إدارة وتشغيل المحطات، 
-              الامتياز التجاري، وتأجير المرافق بالمحطات
+              {language === "ar" 
+                ? "نقدم أيضاً خدمات مميزة للمستثمرين تشمل إدارة وتشغيل المحطات، الامتياز التجاري، وتأجير المرافق بالمحطات"
+                : "We also offer special services for investors including station management, franchise opportunities, and facility rental"}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               {investorServices.map((service) => (

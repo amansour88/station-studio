@@ -1,17 +1,20 @@
-import { ArrowLeft, MapPin, Fuel, Calendar, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Fuel, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationHero from "@/assets/station-hero.jpg";
-
-const defaultStats = [
-  { number: "78", label: "محطة", icon: Fuel },
-  { number: "5", label: "مناطق", icon: MapPin },
-  { number: "1998", label: "سنة التأسيس", icon: Calendar },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Hero = () => {
+  const { t, language } = useLanguage();
+  
+  const defaultStats = [
+    { number: "78", label: t("hero.stations"), icon: Fuel },
+    { number: "5", label: t("hero.regions"), icon: MapPin },
+    { number: "1998", label: t("hero.founded"), icon: Calendar },
+  ];
+
   const { data: heroData, isLoading } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
@@ -33,13 +36,12 @@ const Hero = () => {
     }
   };
 
-  // Use database values or defaults
-  const title = heroData?.title || "شريكك الموثوق على الطريق";
-  const subtitle = heroData?.subtitle || "منذ 1998";
-  const description = heroData?.description || "نقدم لك تجربة متكاملة من خدمات الوقود عالي الجودة، خدمات السيارات، المتاجر، والمطاعم في جميع أنحاء المملكة العربية السعودية";
-  const ctaText = heroData?.cta_text || "اكتشف خدماتنا";
+  // Use database values or defaults with translations
+  const ctaText = heroData?.cta_text || t("hero.cta");
   const ctaLink = heroData?.cta_link || "#services";
   const backgroundImage = heroData?.background_image_url || stationHero;
+
+  const ArrowIcon = language === "ar" ? ArrowLeft : ArrowRight;
 
   return (
     <section 
@@ -50,7 +52,7 @@ const Hero = () => {
       <div className="absolute inset-0">
         <img
           src={backgroundImage}
-          alt="محطة اوس"
+          alt={language === "ar" ? "محطة اوس" : "AWS Station"}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 hero-overlay" />
@@ -67,7 +69,7 @@ const Hero = () => {
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-2 mb-8 animate-fade-in">
             <span className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
             <span className="text-white/90 font-medium">
-              {title} {subtitle}
+              {t("hero.badge")}
             </span>
           </div>
 
@@ -76,17 +78,17 @@ const Hero = () => {
             <Skeleton className="h-20 w-3/4 mx-auto mb-6 bg-white/10" />
           ) : (
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
-              <span>نحو رحلة </span>
-              <span className="text-gradient-gold">بلا حدود</span>
-              {/* Animated arrows - car path effect - pointing outward */}
-              <span className="inline-flex items-center mr-6 align-baseline translate-y-0.5">
-                <span className="flex text-secondary text-xl md:text-3xl lg:text-4xl font-black">
+              <span>{t("hero.title")} </span>
+              <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
+              {/* Animated arrows - car path effect */}
+              <span className={`inline-flex items-center ${language === "ar" ? "mr-6" : "ml-6"} align-baseline translate-y-0.5`}>
+                <span className={`flex text-secondary text-xl md:text-3xl lg:text-4xl font-black ${language === "en" ? "flex-row-reverse" : ""}`}>
                   <span className="animate-pulse opacity-100" style={{ animationDelay: "0s" }}>›</span>
-                  <span className="animate-pulse opacity-80 mr-1 md:mr-2" style={{ animationDelay: "0.15s" }}>›</span>
-                  <span className="animate-pulse opacity-60 mr-1 md:mr-2" style={{ animationDelay: "0.3s" }}>›</span>
-                  <span className="animate-pulse opacity-45 mr-1 md:mr-2" style={{ animationDelay: "0.4s" }}>›</span>
-                  <span className="animate-pulse opacity-30 mr-1 md:mr-2" style={{ animationDelay: "0.5s" }}>›</span>
-                  <span className="animate-pulse opacity-20 mr-1 md:mr-2" style={{ animationDelay: "0.6s" }}>›</span>
+                  <span className={`animate-pulse opacity-80 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.15s" }}>›</span>
+                  <span className={`animate-pulse opacity-60 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.3s" }}>›</span>
+                  <span className={`animate-pulse opacity-45 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.4s" }}>›</span>
+                  <span className={`animate-pulse opacity-30 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.5s" }}>›</span>
+                  <span className={`animate-pulse opacity-20 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.6s" }}>›</span>
                 </span>
               </span>
             </h1>
@@ -97,7 +99,7 @@ const Hero = () => {
             <Skeleton className="h-8 w-2/3 mx-auto mb-6 bg-white/10" />
           ) : (
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-              {description}
+              {t("hero.description")}
             </p>
           )}
 
@@ -105,28 +107,20 @@ const Hero = () => {
           <div className="inline-flex items-center gap-4 bg-gradient-to-r from-secondary/30 via-secondary/20 to-secondary/30 backdrop-blur-sm rounded-full px-8 py-4 border border-secondary/50 mb-10 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <Users className="w-6 h-6 text-secondary" />
             <span className="text-white font-medium">
-              نفخر بخدمة أكثر من <span className="text-secondary font-bold">مليون</span> عميل سنوياً
+              {t("hero.millionCustomers")} <span className="text-secondary font-bold">{t("hero.million")}</span> {t("hero.customersYearly")}
             </span>
             <Users className="w-6 h-6 text-secondary" />
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+          {/* CTA Button */}
+          <div className="flex justify-center mb-16 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
             <Button
               size="lg"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold transition-all duration-300 hover:scale-105"
               onClick={() => scrollToSection(ctaLink)}
             >
               {ctaText}
-              <ArrowLeft className="w-5 h-5 mr-2" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-white/50 text-white bg-white/10 hover:bg-white hover:text-primary font-bold text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection("#contact")}
-            >
-              تواصل معنا
+              <ArrowIcon className={`w-5 h-5 ${language === "ar" ? "mr-2" : "ml-2"}`} />
             </Button>
           </div>
 
