@@ -30,7 +30,19 @@ const Logo = forwardRef<HTMLImageElement, LogoProps>(
       );
     }
 
-    // For all other variants, use the new transparent logo
+    // For white variant (footer), apply filter to make it all white
+    if (variant === "white") {
+      return (
+        <img
+          ref={ref}
+          src={logoAwsFinal}
+          alt="اوس للخدمات البترولية - AWS Petroleum Services"
+          className={cn(sizeClasses[size], "w-auto brightness-0 invert", className)}
+        />
+      );
+    }
+
+    // For default and dark variants, use the colored logo
     return (
       <img
         ref={ref}
