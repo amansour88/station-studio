@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +52,6 @@ const fallbackPartners = [
 
 const Partners = () => {
   const { t, language } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
   // Fetch partners from database
@@ -76,18 +75,27 @@ const Partners = () => {
         name: p.name,
         nameAr: p.name,
         description: p.description || "",
-        logo: p.logo_url || fallbackPartners[0].logo,
+        logo: p.logo_url && p.logo_url.trim() ? p.logo_url : fallbackPartners[0].logo,
       }))
     : fallbackPartners;
 
   // Embla Carousel with autoplay
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { 
-      loop: true, 
-      align: "start",
-      direction: "rtl",
-      dragFree: true,
+  // Important: Page is RTL in Arabic; keep the viewport dir="ltr" and let Embla control direction
+  const emblaOptions = useMemo(
+    () => {
+      const direction: "rtl" | "ltr" = language === "ar" ? "rtl" : "ltr";
+      return {
+        loop: true,
+        align: "start" as const,
+        direction,
+        dragFree: false,
+      };
     },
+    [language],
+  );
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    emblaOptions,
     [
       Autoplay({
         delay: 2000,
@@ -113,23 +121,7 @@ const Partners = () => {
     }
   }, [emblaApi]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const section = document.getElementById("partners");
-    if (section) {
-      observer.observe(section);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+  // Render immediately (no IntersectionObserver) to avoid cards staying hidden
 
   return (
     <section id="partners" className="py-24 bg-background overflow-hidden">
@@ -160,16 +152,15 @@ const Partners = () => {
           <div 
             className="overflow-hidden" 
             ref={emblaRef}
+            dir="ltr"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
             <div className="flex gap-6" style={{ direction: "ltr" }}>
               {partners.map((partner, index) => (
                 <div
-                  key={index}
-                  className={`group flex-shrink-0 w-48 bg-card rounded-2xl shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col cursor-pointer hover:-translate-y-2 overflow-hidden ${
-                    isVisible ? "animate-fade-in-up" : "opacity-0"
-                  }`}
+                  key={`${partner.name}-${index}`}
+                  className={`group flex-shrink-0 w-48 bg-card rounded-2xl shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col cursor-pointer hover:-translate-y-2 overflow-hidden animate-fade-in-up`}
                   style={{ animationDelay: `${(index % 5) * 0.1}s` }}
                 >
                   {/* Partner Logo */}
@@ -177,7 +168,12 @@ const Partners = () => {
                     <img
                       src={partner.logo}
                       alt={partner.nameAr}
+                      loading="lazy"
                       className="max-w-full max-h-full object-contain transition-transform duration-500 ease-out group-hover:scale-110"
+                      onError={(e) => {
+                        const fallback = fallbackPartners[0].logo;
+                        if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </div>
