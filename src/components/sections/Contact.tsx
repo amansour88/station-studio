@@ -270,14 +270,14 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 items-stretch">
           {/* Left Column - Contact Info */}
-          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 h-fit">
+          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex flex-col">
             <h3 className="text-2xl font-bold text-foreground mb-8">
               معلومات التواصل
             </h3>
             
-            <div className="space-y-5">
+            <div className="space-y-5 flex-1">
               {contactInfo.map((info, index) => (
                 <a
                   key={index}
@@ -319,7 +319,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
           </div>
 
           {/* Right Column - Contact Form */}
-          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 h-fit">
+          <div className="bg-card rounded-3xl shadow-aws-lg p-8 border border-border/50 flex flex-col">
             <h3 className="text-2xl font-bold text-foreground mb-6">
               أرسل لنا رسالة
             </h3>
