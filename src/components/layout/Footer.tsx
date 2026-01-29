@@ -133,11 +133,10 @@ const Footer = () => {
             </a>
             <Link 
               to="/admin/login" 
-              className="flex items-center gap-1 hover:text-secondary transition-colors"
+              className="hover:text-secondary transition-colors"
               title={t("footer.adminPanel")}
             >
               <Settings className="w-4 h-4" />
-              <span>{t("footer.adminPanel")}</span>
             </Link>
           </div>
         </div>
