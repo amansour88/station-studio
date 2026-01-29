@@ -300,6 +300,24 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
                   </a>
                 ))}
               </div>
+
+              {/* Google Maps */}
+              <div className="mt-6">
+                <h4 className="font-semibold text-foreground mb-3">موقعنا على الخريطة</h4>
+                <div className="rounded-xl overflow-hidden border border-border/50 shadow-aws">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3631.7368088888!2d39.6135!3d24.4672!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x15bdbf8c3e0a8b8d%3A0x1234567890abcdef!2z2LfYsdmK2YIg2KfZhNmF2YTZgyDYudio2K_Yp9mE2YTZhyDYp9mE2YXYr9mK2YbYqSDYp9mE2YXZhtmI2LHYqQ!5e0!3m2!1sar!2ssa!4v1234567890"
+                    width="100%"
+                    height="200"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="موقع شركة اوس للخدمات البترولية"
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Franchise CTA Card */}
