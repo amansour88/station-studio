@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin, ExternalLink, Navigation } from "lucide-react";
+import { cn } from "@/lib/utils";
 import stationDay from "@/assets/station-day.jpg";
 import stationNight from "@/assets/station-night.jpg";
 import serviceCenter from "@/assets/service-center.jpg";
@@ -31,7 +33,44 @@ const galleryImages = [
   },
 ];
 
+interface Region {
+  id: string;
+  name: string;
+  slug: string;
+  map_url: string | null;
+}
+
+interface Station {
+  id: string;
+  name: string;
+  region: string;
+  city: string | null;
+  address: string | null;
+  phone: string | null;
+  services: string[] | null;
+  products: string[] | null;
+  google_maps_url: string | null;
+  image_url: string | null;
+}
+
 const Stations = () => {
+  const [selectedRegion, setSelectedRegion] = useState<string>("all");
+
+  // Fetch regions from database
+  const { data: regions, isLoading: regionsLoading } = useQuery({
+    queryKey: ["regions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("regions")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      
+      if (error) throw error;
+      return data as Region[];
+    },
+  });
+
   // Fetch stations from database
   const { data: stations, isLoading: stationsLoading } = useQuery({
     queryKey: ["stations"],
@@ -43,19 +82,22 @@ const Stations = () => {
         .order("region", { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data as Station[];
     },
   });
 
-  // Extract unique regions from stations
-  const regions = stations
-    ? [...new Set(stations.map((s) => s.region))].filter(Boolean)
-    : ["منطقة القصيم", "منطقة مكة المكرمة", "منطقة المدينة المنورة", "منطقة حائل", "منطقة عسير"];
+  // Filter stations by region
+  const filteredStations = selectedRegion === "all"
+    ? stations
+    : stations?.filter(s => s.region === selectedRegion);
 
   // Calculate stats
   const stationCount = stations?.length || 78;
-  const regionCount = regions.length || 5;
+  const regionCount = regions?.length || 5;
   const cityCount = stations ? [...new Set(stations.map((s) => s.city))].filter(Boolean).length : 30;
+
+  // Get selected region map URL
+  const selectedRegionData = regions?.find(r => r.name === selectedRegion);
 
   return (
     <section id="stations" className="py-24 bg-muted/50">
@@ -75,24 +117,59 @@ const Stations = () => {
           </p>
         </div>
 
-        {/* Regions */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {stationsLoading ? (
+        {/* Regions Filter */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {regionsLoading ? (
             Array.from({ length: 5 }).map((_, index) => (
               <Skeleton key={index} className="h-12 w-32 rounded-full" />
             ))
           ) : (
-            regions.map((region, index) => (
-              <div
-                key={index}
-                className="bg-card border border-border rounded-full px-6 py-3 shadow-sm hover:shadow-aws hover:border-secondary transition-all duration-300 cursor-pointer flex items-center gap-2"
+            <>
+              <button
+                onClick={() => setSelectedRegion("all")}
+                className={cn(
+                  "px-6 py-3 rounded-full shadow-sm transition-all duration-300 flex items-center gap-2",
+                  selectedRegion === "all"
+                    ? "bg-primary text-primary-foreground shadow-aws"
+                    : "bg-card border border-border hover:shadow-aws hover:border-secondary"
+                )}
               >
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-foreground font-medium">{region}</span>
-              </div>
-            ))
+                <MapPin className="w-4 h-4" />
+                <span className="font-medium">جميع المناطق</span>
+              </button>
+              {regions?.map((region) => (
+                <button
+                  key={region.id}
+                  onClick={() => setSelectedRegion(region.name)}
+                  className={cn(
+                    "px-6 py-3 rounded-full shadow-sm transition-all duration-300 flex items-center gap-2",
+                    selectedRegion === region.name
+                      ? "bg-primary text-primary-foreground shadow-aws"
+                      : "bg-card border border-border hover:shadow-aws hover:border-secondary"
+                  )}
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span className="font-medium">{region.name}</span>
+                </button>
+              ))}
+            </>
           )}
         </div>
+
+        {/* Region Map Link */}
+        {selectedRegionData?.map_url && (
+          <div className="text-center mb-8">
+            <a
+              href={selectedRegionData.map_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-full font-medium hover:bg-secondary/90 transition-colors shadow-gold"
+            >
+              <Navigation className="w-5 h-5" />
+              عرض محطات {selectedRegionData.name} على الخريطة
+            </a>
+          </div>
+        )}
 
         {/* Stats Banner */}
         <div className="bg-primary rounded-3xl p-8 mb-16 relative overflow-hidden">
@@ -117,14 +194,23 @@ const Stations = () => {
           </div>
         </div>
 
-        {/* Stations List - Show if we have real stations */}
-        {stations && stations.length > 0 && (
+        {/* Stations List */}
+        {stationsLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-48 rounded-2xl" />
+            ))}
+          </div>
+        ) : filteredStations && filteredStations.length > 0 ? (
           <div className="mb-16">
             <h3 className="text-2xl font-bold text-foreground mb-8 text-center">
-              محطاتنا
+              {selectedRegion === "all" ? "محطاتنا" : `محطات ${selectedRegion}`}
+              <span className="text-muted-foreground text-lg font-normal mr-2">
+                ({filteredStations.length} محطة)
+              </span>
             </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stations.slice(0, 6).map((station) => (
+              {filteredStations.map((station) => (
                 <div
                   key={station.id}
                   className="bg-card rounded-2xl p-6 shadow-aws border border-border/50 hover:shadow-aws-lg hover:border-secondary transition-all duration-300"
@@ -149,6 +235,21 @@ const Stations = () => {
                     </p>
                   )}
 
+                  {/* Products */}
+                  {station.products && station.products.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {station.products.slice(0, 4).map((product, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
+                        >
+                          {product}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Services */}
                   {station.services && station.services.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {station.services.slice(0, 3).map((service, idx) => (
@@ -162,20 +263,39 @@ const Stations = () => {
                     </div>
                   )}
 
-                  {station.phone && (
-                    <a
-                      href={`tel:${station.phone}`}
-                      className="text-sm text-primary hover:text-secondary transition-colors flex items-center gap-2"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      {station.phone}
-                    </a>
-                  )}
+                  <div className="flex items-center justify-between">
+                    {station.phone && (
+                      <a
+                        href={`tel:${station.phone}`}
+                        className="text-sm text-primary hover:text-secondary transition-colors"
+                        dir="ltr"
+                      >
+                        {station.phone}
+                      </a>
+                    )}
+                    
+                    {station.google_maps_url && (
+                      <a
+                        href={station.google_maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        الموقع
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        ) : selectedRegion !== "all" ? (
+          <div className="text-center p-12 bg-card rounded-2xl border border-border/50 mb-16">
+            <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground">لا توجد محطات في هذه المنطقة حالياً</p>
+          </div>
+        ) : null}
 
         {/* Stations Gallery */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

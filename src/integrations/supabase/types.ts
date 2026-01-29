@@ -194,6 +194,39 @@ export type Database = {
         }
         Relationships: []
       }
+      regions: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          map_url: string | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          map_url?: string | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          map_url?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string
@@ -235,6 +268,7 @@ export type Database = {
           address: string | null
           city: string | null
           created_at: string
+          google_maps_url: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
@@ -242,6 +276,7 @@ export type Database = {
           longitude: number | null
           name: string
           phone: string | null
+          products: string[] | null
           region: string
           services: string[] | null
           updated_at: string
@@ -250,6 +285,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string
+          google_maps_url?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -257,6 +293,7 @@ export type Database = {
           longitude?: number | null
           name: string
           phone?: string | null
+          products?: string[] | null
           region: string
           services?: string[] | null
           updated_at?: string
@@ -265,6 +302,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           created_at?: string
+          google_maps_url?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
@@ -272,6 +310,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           phone?: string | null
+          products?: string[] | null
           region?: string
           services?: string[] | null
           updated_at?: string

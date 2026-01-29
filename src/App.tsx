@@ -18,6 +18,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import HeroEditor from "./pages/admin/HeroEditor";
 import AboutEditor from "./pages/admin/AboutEditor";
 import ServicesManager from "./pages/admin/ServicesManager";
+import RegionsManager from "./pages/admin/RegionsManager";
 import StationsManager from "./pages/admin/StationsManager";
 import PartnersManager from "./pages/admin/PartnersManager";
 import MessagesInbox from "./pages/admin/MessagesInbox";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/admin/hero" element={<ProtectedRoute><HeroEditor /></ProtectedRoute>} />
           <Route path="/admin/about" element={<ProtectedRoute><AboutEditor /></ProtectedRoute>} />
           <Route path="/admin/services" element={<ProtectedRoute><ServicesManager /></ProtectedRoute>} />
+          <Route path="/admin/regions" element={<ProtectedRoute><RegionsManager /></ProtectedRoute>} />
           <Route path="/admin/stations" element={<ProtectedRoute><StationsManager /></ProtectedRoute>} />
           <Route path="/admin/partners" element={<ProtectedRoute><PartnersManager /></ProtectedRoute>} />
           <Route path="/admin/messages" element={<ProtectedRoute><MessagesInbox /></ProtectedRoute>} />

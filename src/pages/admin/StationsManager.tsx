@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, MapPin, Save, X, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Save, X, Upload, ExternalLink } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,12 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { cn } from "@/lib/utils";
+
+interface Region {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 interface Station {
   id: string;
@@ -19,6 +25,8 @@ interface Station {
   longitude: number | null;
   phone: string | null;
   services: string[] | null;
+  products: string[] | null;
+  google_maps_url: string | null;
   image_url: string | null;
   is_active: boolean;
 }
@@ -26,23 +34,31 @@ interface Station {
 const StationsManager = () => {
   const { toast } = useToast();
   const [stations, setStations] = useState<Station[]>([]);
+  const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingStation, setEditingStation] = useState<Station | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filterRegion, setFilterRegion] = useState<string>("all");
 
-  const regions = [
-    "منطقة القصيم",
-    "منطقة مكة المكرمة",
-    "منطقة المدينة المنورة",
-    "منطقة حائل",
-    "منطقة عسير",
-  ];
-
   useEffect(() => {
+    fetchRegions();
     fetchStations();
   }, []);
+
+  const fetchRegions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("regions")
+        .select("id, name, slug")
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+      setRegions(data || []);
+    } catch (error) {
+      console.error("Error fetching regions:", error);
+    }
+  };
 
   const fetchStations = async () => {
     try {
@@ -69,13 +85,15 @@ const StationsManager = () => {
     setEditingStation({
       id: "",
       name: "",
-      region: regions[0],
+      region: regions[0]?.name || "منطقة القصيم",
       city: "",
       address: "",
       latitude: null,
       longitude: null,
       phone: "",
       services: [],
+      products: [],
+      google_maps_url: null,
       image_url: null,
       is_active: true,
     });
@@ -157,6 +175,8 @@ const StationsManager = () => {
         longitude: editingStation.longitude,
         phone: editingStation.phone || null,
         services: editingStation.services,
+        products: editingStation.products,
+        google_maps_url: editingStation.google_maps_url || null,
         image_url: editingStation.image_url,
         is_active: editingStation.is_active,
       };
@@ -271,8 +291,8 @@ const StationsManager = () => {
             >
               <option value="all">كل المناطق</option>
               {regions.map((region) => (
-                <option key={region} value={region}>
-                  {region}
+                <option key={region.id} value={region.name}>
+                  {region.name}
                 </option>
               ))}
             </select>
@@ -319,8 +339,8 @@ const StationsManager = () => {
                   className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg"
                 >
                   {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
+                    <option key={region.id} value={region.name}>
+                      {region.name}
                     </option>
                   ))}
                 </select>
@@ -402,6 +422,50 @@ const StationsManager = () => {
                   }
                   className="bg-muted/50"
                   dir="ltr"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  رابط خرائط جوجل
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    value={editingStation.google_maps_url || ""}
+                    onChange={(e) =>
+                      setEditingStation({ ...editingStation, google_maps_url: e.target.value })
+                    }
+                    placeholder="https://maps.google.com/..."
+                    className="bg-muted/50 flex-1"
+                    dir="ltr"
+                  />
+                  {editingStation.google_maps_url && (
+                    <a
+                      href={editingStation.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  المنتجات المتوفرة (مفصولة بفاصلة)
+                </label>
+                <Input
+                  value={editingStation.products?.join(", ") || ""}
+                  onChange={(e) =>
+                    setEditingStation({
+                      ...editingStation,
+                      products: e.target.value.split(",").map(p => p.trim()).filter(Boolean),
+                    })
+                  }
+                  placeholder="بنزين 91، بنزين 95، ديزل..."
+                  className="bg-muted/50"
                 />
               </div>
 
@@ -507,6 +571,19 @@ const StationsManager = () => {
                       onCheckedChange={() => toggleActive(station)}
                     />
                   </div>
+                  
+                  {station.google_maps_url && (
+                    <a
+                      href={station.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:text-secondary mb-2"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      عرض على الخريطة
+                    </a>
+                  )}
+                  
                   <div className="flex gap-1 mt-3">
                     <Button
                       variant="outline"
