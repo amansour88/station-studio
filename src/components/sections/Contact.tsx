@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Phone, Mail, MapPin, Send, CheckCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Send, CheckCircle, Upload, X, Briefcase, MessageSquare, AlertTriangle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
@@ -14,6 +15,19 @@ const contactSchema = z.object({
   city: z.string().max(100).optional(),
   message: z.string().trim().min(10, "الرسالة يجب أن تكون 10 أحرف على الأقل").max(1000),
 });
+
+const contactTypes = [
+  { id: "general", label: "استفسار عام", icon: MessageSquare, description: "لديك سؤال أو استفسار" },
+  { id: "complaint", label: "شكوى", icon: AlertTriangle, description: "تقديم شكوى أو ملاحظة" },
+  { id: "job_application", label: "التقديم على وظيفة", icon: Briefcase, description: "إرسال السيرة الذاتية" },
+  { id: "investor", label: "خدمات المستثمرين", icon: Building2, description: "فرص الاستثمار والامتياز" },
+];
+
+const investorServices = [
+  { id: "station_management", label: "إدارة المحطات" },
+  { id: "franchise", label: "الامتياز التجاري" },
+  { id: "facility_rental", label: "تأجير المرافق" },
+];
 
 const contactInfo = [
   {
@@ -36,8 +50,15 @@ const contactInfo = [
   },
 ];
 
-const Contact = () => {
+interface ContactProps {
+  defaultType?: string;
+  defaultServiceType?: string;
+}
+
+const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
   const { toast } = useToast();
+  const [contactType, setContactType] = useState(defaultType || "general");
+  const [serviceType, setServiceType] = useState(defaultServiceType || "");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -47,23 +68,74 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user types
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "حجم الملف يجب أن يكون أقل من 5 ميجابايت",
+        });
+        return;
+      }
+      // Validate file type
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          variant: "destructive",
+          title: "خطأ",
+          description: "نوع الملف غير مدعوم. الملفات المدعومة: PDF, صور, Word",
+        });
+        return;
+      }
+      setAttachment(file);
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachment(null);
+  };
+
+  const uploadFile = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `contact-attachments/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("uploads")
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("uploads")
+      .getPublicUrl(filePath);
+
+    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
-    // Validate
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -76,15 +148,50 @@ const Contact = () => {
       return;
     }
 
+    // Validate investor service type
+    if (contactType === "investor" && !serviceType) {
+      toast({
+        variant: "destructive",
+        title: "خطأ",
+        description: "يرجى اختيار نوع الخدمة المطلوبة",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
+    let attachmentUrl: string | null = null;
 
     try {
+      // Upload attachment if exists
+      if (attachment) {
+        setIsUploading(true);
+        attachmentUrl = await uploadFile(attachment);
+        setIsUploading(false);
+        if (!attachmentUrl) {
+          throw new Error("Failed to upload attachment");
+        }
+      }
+
+      // Build subject based on type
+      let subject = formData.city ? `من ${formData.city}` : null;
+      if (contactType === "investor" && serviceType) {
+        const serviceName = investorServices.find(s => s.id === serviceType)?.label;
+        subject = serviceName ? `${serviceName}${formData.city ? ` - من ${formData.city}` : ""}` : subject;
+      } else if (contactType === "job_application") {
+        subject = `طلب توظيف${formData.city ? ` - من ${formData.city}` : ""}`;
+      } else if (contactType === "complaint") {
+        subject = `شكوى${formData.city ? ` - من ${formData.city}` : ""}`;
+      }
+
       const { error } = await supabase.from("contact_messages").insert({
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
-        subject: formData.city ? `من ${formData.city}` : null,
+        subject,
         message: formData.message.trim(),
+        type: contactType,
+        service_type: contactType === "investor" ? serviceType : null,
+        attachment_url: attachmentUrl,
       });
 
       if (error) throw error;
@@ -94,6 +201,7 @@ const Contact = () => {
         description: "سنتواصل معك في أقرب وقت ممكن",
       });
 
+      // Reset form
       setFormData({
         name: "",
         email: "",
@@ -101,6 +209,9 @@ const Contact = () => {
         city: "",
         message: "",
       });
+      setContactType("general");
+      setServiceType("");
+      setAttachment(null);
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -110,6 +221,33 @@ const Contact = () => {
       });
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
+    }
+  };
+
+  const getPlaceholderMessage = () => {
+    switch (contactType) {
+      case "complaint":
+        return "صف المشكلة أو الشكوى بالتفصيل...";
+      case "job_application":
+        return "اكتب نبذة عنك وخبراتك...";
+      case "investor":
+        return "اكتب تفاصيل طلبك الاستثماري...";
+      default:
+        return "اكتب رسالتك هنا...";
+    }
+  };
+
+  const getFileLabel = () => {
+    switch (contactType) {
+      case "complaint":
+        return "إرفاق صورة (اختياري)";
+      case "job_application":
+        return "إرفاق السيرة الذاتية *";
+      case "investor":
+        return "إرفاق مستندات (اختياري)";
+      default:
+        return "إرفاق ملف (اختياري)";
     }
   };
 
@@ -185,6 +323,55 @@ const Contact = () => {
               أرسل لنا رسالة
             </h3>
             
+            {/* Contact Type Selector */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {contactTypes.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => {
+                    setContactType(type.id);
+                    if (type.id !== "investor") setServiceType("");
+                  }}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300",
+                    contactType === type.id
+                      ? "border-secondary bg-secondary/10 text-secondary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:border-secondary/50"
+                  )}
+                >
+                  <type.icon className="w-6 h-6" />
+                  <span className="font-medium text-sm">{type.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Investor Service Type */}
+            {contactType === "investor" && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  نوع الخدمة المطلوبة *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {investorServices.map((service) => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      onClick={() => setServiceType(service.id)}
+                      className={cn(
+                        "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300",
+                        serviceType === service.id
+                          ? "bg-secondary text-secondary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-secondary/20"
+                      )}
+                    >
+                      {service.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
@@ -258,7 +445,7 @@ const Contact = () => {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder="اكتب رسالتك هنا..."
+                  placeholder={getPlaceholderMessage()}
                   required
                   rows={5}
                   className={`bg-muted/50 border-border focus:border-secondary resize-none ${errors.message ? 'border-destructive' : ''}`}
@@ -266,15 +453,55 @@ const Contact = () => {
                 {errors.message && <p className="text-destructive text-xs mt-1">{errors.message}</p>}
               </div>
 
+              {/* File Upload */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {getFileLabel()}
+                </label>
+                {!attachment ? (
+                  <label className="flex items-center justify-center gap-3 p-4 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-secondary/50 hover:bg-muted/30 transition-all duration-300">
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-muted-foreground text-sm">اضغط لاختيار ملف (PDF, صور, Word - حتى 5MB)</span>
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                      className="hidden"
+                    />
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground text-sm">{attachment.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeAttachment}
+                      className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg py-6 shadow-gold"
               >
-                {isSubmitting ? (
+                {isSubmitting || isUploading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    جاري الإرسال...
+                    {isUploading ? "جاري رفع الملف..." : "جاري الإرسال..."}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
