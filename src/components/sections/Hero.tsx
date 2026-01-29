@@ -77,23 +77,26 @@ const Hero = () => {
           ) : (
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
               <span>نحو رحلة </span>
-              <span className="text-gradient-gold">بلا حدود</span>
-              {/* Road design - highway going forward */}
-              <span className="inline-flex items-center mr-6 align-baseline">
-                <span className="relative flex items-center h-6 md:h-8 lg:h-10 w-20 md:w-28 lg:w-36">
-                  {/* Road base */}
-                  <span className="absolute inset-0 bg-gradient-to-l from-white/40 via-white/20 to-transparent rounded-full" />
-                  {/* Road surface */}
-                  <span className="absolute inset-y-1 md:inset-y-1.5 left-0 right-2 bg-gradient-to-l from-gray-700/80 via-gray-600/60 to-transparent rounded-full" />
-                  {/* Dashed center line - animated */}
-                  <span className="absolute inset-y-[45%] h-[10%] left-1 right-4 flex gap-2 md:gap-3 overflow-hidden">
-                    <span className="w-2 md:w-3 h-full bg-secondary rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
-                    <span className="w-2 md:w-3 h-full bg-secondary/80 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
-                    <span className="w-2 md:w-3 h-full bg-secondary/60 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
-                    <span className="w-2 md:w-3 h-full bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }} />
-                    <span className="w-2 md:w-3 h-full bg-secondary/20 rounded-full animate-pulse" style={{ animationDelay: "0.8s" }} />
-                  </span>
+              {/* Road design with text inside */}
+              <span className="relative inline-block">
+                {/* Road background */}
+                <span className="absolute inset-y-1 -inset-x-4 md:-inset-x-6 bg-gradient-to-l from-white/30 via-white/15 to-transparent rounded-full" />
+                <span className="absolute inset-y-2 md:inset-y-3 -inset-x-3 md:-inset-x-5 bg-gradient-to-l from-gray-800/70 via-gray-700/50 to-transparent rounded-full" />
+                {/* Dashed center lines - top and bottom */}
+                <span className="absolute top-1 md:top-2 -left-2 -right-3 md:-right-4 h-[3px] flex gap-2 overflow-hidden">
+                  <span className="w-2 h-full bg-secondary/80 rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
+                  <span className="w-2 h-full bg-secondary/60 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  <span className="w-2 h-full bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
+                  <span className="w-2 h-full bg-secondary/20 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }} />
                 </span>
+                <span className="absolute bottom-1 md:bottom-2 -left-2 -right-3 md:-right-4 h-[3px] flex gap-2 overflow-hidden">
+                  <span className="w-2 h-full bg-secondary/80 rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
+                  <span className="w-2 h-full bg-secondary/60 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
+                  <span className="w-2 h-full bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
+                  <span className="w-2 h-full bg-secondary/20 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }} />
+                </span>
+                {/* Text */}
+                <span className="relative text-gradient-gold px-2">بلا حدود</span>
               </span>
             </h1>
           )}
