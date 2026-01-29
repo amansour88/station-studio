@@ -89,9 +89,9 @@ const About = () => {
               </div>
             )}
             {/* Floating Card */}
-            <div className={`absolute -bottom-8 ${language === "ar" ? "-left-8" : "-right-8"} bg-card rounded-2xl shadow-aws-lg p-6 max-w-xs`}>
-              <div className="text-4xl font-bold text-primary mb-2">{t("about.experience")}</div>
-              <div className="text-muted-foreground">{t("about.experienceText")}</div>
+            <div className={`absolute -bottom-6 ${language === "ar" ? "-left-6" : "-right-6"} bg-card rounded-2xl shadow-aws-lg p-5 max-w-[280px] scale-95`}>
+              <div className="text-3xl font-bold text-primary mb-1">{t("about.experience")}</div>
+              <div className="text-muted-foreground text-sm">{t("about.experienceText")}</div>
             </div>
           </div>
 
