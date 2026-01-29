@@ -2,21 +2,24 @@ import { useState, useEffect } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/Logo";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { name: "الرئيسية", href: "#home" },
-  { name: "من نحن", href: "#about" },
-  { name: "خدماتنا", href: "#services" },
-  { name: "محطاتنا", href: "#stations" },
-  { name: "شركاؤنا", href: "#partners" },
-  { name: "تواصل معنا", href: "#contact" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState("#home");
+  
+  const navLinks = [
+    { name: t("nav.home"), href: "#home" },
+    { name: t("nav.about"), href: "#about" },
+    { name: t("nav.services"), href: "#services" },
+    { name: t("nav.stations"), href: "#stations" },
+    { name: t("nav.partners"), href: "#partners" },
+    { name: t("nav.contact"), href: "#contact" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,8 +87,9 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* Language Switcher & CTA Button */}
           <div className="hidden lg:flex items-center gap-4">
+            <LanguageSwitcher isScrolled={isScrolled} />
             <a 
               href="tel:920008436" 
               className={cn(
@@ -101,7 +105,7 @@ const Navbar = () => {
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold shadow-gold transition-all duration-300 hover:scale-105 hover:shadow-gold-lg"
               onClick={() => scrollToSection("#contact")}
             >
-              تواصل معنا
+              {t("nav.contact")}
             </Button>
           </div>
 
@@ -139,7 +143,8 @@ const Navbar = () => {
                 {link.name}
               </button>
             ))}
-            <div className="pt-4 border-t border-border">
+            <div className="pt-4 border-t border-border space-y-3">
+              <LanguageSwitcher isScrolled={true} />
               <a 
                 href="tel:920008436" 
                 className="flex items-center justify-center gap-2 text-primary font-semibold py-2"
@@ -151,7 +156,7 @@ const Navbar = () => {
                 className="w-full mt-2 bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold"
                 onClick={() => scrollToSection("#contact")}
               >
-                تواصل معنا
+                {t("nav.contact")}
               </Button>
             </div>
           </div>

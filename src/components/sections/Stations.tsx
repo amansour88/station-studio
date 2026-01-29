@@ -8,6 +8,7 @@ import stationDay from "@/assets/station-day.jpg";
 import stationNight from "@/assets/station-night.jpg";
 import serviceCenter from "@/assets/service-center.jpg";
 import hotel from "@/assets/hotel.jpg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Fallback gallery images
 const galleryImages = [
@@ -54,6 +55,7 @@ interface Station {
 }
 
 const Stations = () => {
+  const { t, language } = useLanguage();
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
 
   // Fetch regions from database
@@ -99,21 +101,45 @@ const Stations = () => {
   // Get selected region map URL
   const selectedRegionData = regions?.find(r => r.name === selectedRegion);
 
+  // Fallback gallery images with translations
+  const galleryImages = [
+    {
+      image: stationDay,
+      title: language === "ar" ? "محطة متكاملة" : "Complete Station",
+      description: language === "ar" ? "تصميم عصري مع جميع الخدمات" : "Modern design with all services",
+    },
+    {
+      image: stationNight,
+      title: language === "ar" ? "خدمة على مدار الساعة" : "24/7 Service",
+      description: language === "ar" ? "نعمل ليلاً ونهاراً لخدمتكم" : "Working day and night to serve you",
+    },
+    {
+      image: serviceCenter,
+      title: language === "ar" ? "مركز خدمة السيارات" : "Car Service Center",
+      description: language === "ar" ? "صيانة متكاملة وغيار زيت وإطارات" : "Complete maintenance and oil change",
+    },
+    {
+      image: hotel,
+      title: language === "ar" ? "فنادق ومرافق" : "Hotels & Facilities",
+      description: language === "ar" ? "راحة المسافرين أولويتنا" : "Traveler comfort is our priority",
+    },
+  ];
+
   return (
     <section id="stations" className="py-24 bg-muted/50">
       <div className="container px-4">
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
-            محطاتنا
+            {t("stations.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            انتشارنا
-            <span className="text-primary"> الجغرافي</span>
+            {t("stations.title")}
+            <span className="text-primary"> {t("stations.titleHighlight")}</span>
           </h2>
           <div className="section-divider mx-auto mb-6" />
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            نغطي كافة مناطق المملكة الرئيسية لخدمتكم أينما كنتم
+            {t("stations.description")}
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Partner logo imports (fallback)
 import aramcoLogo from "@/assets/aws_broshure_v4_page13_image17.jpg";
@@ -50,6 +51,7 @@ const fallbackPartners = [
 ];
 
 const Partners = () => {
+  const { t, language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -135,15 +137,15 @@ const Partners = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
-            شركاؤنا
+            {t("partners.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            شركاء
-            <span className="text-primary"> النجاح</span>
+            {t("partners.title")}
+            <span className="text-primary"> {t("partners.titleHighlight")}</span>
           </h2>
           <div className="section-divider mx-auto mb-6" />
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            نفخر بشراكاتنا الاستراتيجية مع أبرز الشركات والمؤسسات في المملكة
+            {t("partners.description")}
           </p>
         </div>
 
