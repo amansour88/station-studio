@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import logoAwsTransparent from "@/assets/logo-aws-transparent.png";
+import logoAwsFinal from "@/assets/logo-aws-final.png";
 import logoFlame from "@/assets/logo-flame.png";
 
 interface LogoProps {
@@ -34,7 +34,7 @@ const Logo = forwardRef<HTMLImageElement, LogoProps>(
     return (
       <img
         ref={ref}
-        src={logoAwsTransparent}
+        src={logoAwsFinal}
         alt="اوس للخدمات البترولية - AWS Petroleum Services"
         className={cn(sizeClasses[size], "w-auto", className)}
       />
