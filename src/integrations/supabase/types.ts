@@ -46,6 +46,7 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          attachment_url: string | null
           created_at: string
           email: string
           id: string
@@ -54,9 +55,12 @@ export type Database = {
           message: string
           name: string
           phone: string | null
+          service_type: string | null
           subject: string | null
+          type: string | null
         }
         Insert: {
+          attachment_url?: string | null
           created_at?: string
           email: string
           id?: string
@@ -65,9 +69,12 @@ export type Database = {
           message: string
           name: string
           phone?: string | null
+          service_type?: string | null
           subject?: string | null
+          type?: string | null
         }
         Update: {
+          attachment_url?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -76,7 +83,9 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+          service_type?: string | null
           subject?: string | null
+          type?: string | null
         }
         Relationships: []
       }
