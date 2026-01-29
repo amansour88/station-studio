@@ -89,7 +89,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Phone, CTA & Language Switcher */}
+          {/* Phone & Language Switcher */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             <a 
               href="tel:920008436" 
@@ -101,13 +101,6 @@ const Navbar = () => {
               <Phone className="w-5 h-5" />
               <span dir="ltr">920008436</span>
             </a>
-            <Button 
-              variant="secondary"
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold shadow-gold transition-all duration-300 hover:scale-105 hover:shadow-gold-lg"
-              onClick={() => scrollToSection("#services")}
-            >
-              {t("hero.cta")}
-            </Button>
             <LanguageSwitcher isScrolled={isScrolled} />
           </div>
 
