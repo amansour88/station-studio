@@ -86,11 +86,12 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
       center: initialCenter,
       zoom: initialZoom,
       scrollWheelZoom: true,
+      attributionControl: false, // Remove attribution
     });
 
-    // Add tile layer
+    // Add tile layer without attribution
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '',
     }).addTo(map);
 
     mapRef.current = map;
@@ -154,7 +155,7 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
 
   if (stationsWithCoords.length === 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/20 min-h-[400px] lg:min-h-[600px]">
+      <div className="w-full h-full flex items-center justify-center bg-muted/20 min-h-[350px] lg:min-h-[450px]">
         <div className="text-center p-6">
           <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">{t("stations.noStationsOnMap")}</p>
@@ -166,7 +167,7 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
   return (
     <div 
       ref={mapContainerRef} 
-      className="w-full h-full min-h-[400px] lg:min-h-[600px]"
+      className="w-full h-full min-h-[350px] lg:min-h-[450px]"
       style={{ zIndex: 0 }}
     />
   );
