@@ -1,33 +1,8 @@
 import { useEffect, useRef, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import logoFlame from "@/assets/logo-flame.png";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ExternalLink, Phone } from "lucide-react";
-
-// Fix for default marker icons in Leaflet with webpack/vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: logoFlame,
-  iconUrl: logoFlame,
-  shadowUrl: undefined,
-});
-
-// Custom AWS flame icon
-const createFlameIcon = (isSelected: boolean = false) => {
-  return L.divIcon({
-    className: "custom-flame-marker",
-    html: `
-      <div class="flame-marker ${isSelected ? "selected" : ""}">
-        <img src="${logoFlame}" alt="AWS" />
-      </div>
-    `,
-    iconSize: [isSelected ? 48 : 36, isSelected ? 48 : 36],
-    iconAnchor: [isSelected ? 24 : 18, isSelected ? 48 : 36],
-    popupAnchor: [0, -36],
-  });
-};
 
 interface Station {
   id: string;
@@ -39,8 +14,6 @@ interface Station {
   services: string[] | null;
   products: string[] | null;
   google_maps_url: string | null;
-  latitude?: number;
-  longitude?: number;
 }
 
 interface StationsMapProps {
@@ -59,20 +32,28 @@ const extractCoordinates = (url: string | null): { lat: number; lng: number } | 
   return null;
 };
 
-// Component to handle map center changes
-const MapController = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.flyTo(center, zoom, { duration: 1 });
-  }, [center, zoom, map]);
-  
-  return null;
+// Create custom flame icon
+const createFlameIcon = (isSelected: boolean = false) => {
+  const size = isSelected ? 48 : 32;
+  return L.divIcon({
+    className: "custom-flame-marker",
+    html: `
+      <div class="flame-marker ${isSelected ? "selected" : ""}">
+        <img src="${logoFlame}" alt="AWS" style="width: ${size}px; height: ${size}px;" />
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
+  });
 };
 
 const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMapProps) => {
-  const { t, language } = useLanguage();
-  
+  const { t } = useLanguage();
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+
   // Process stations to get coordinates
   const stationsWithCoords = useMemo(() => {
     return stations
@@ -83,31 +64,113 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
         }
         return null;
       })
-      .filter((s): s is Station & { latitude: number; longitude: number } => s !== null);
+      .filter((s): s is (Station & { latitude: number; longitude: number }) => s !== null);
   }, [stations]);
 
-  // Calculate map center and zoom
-  const mapCenter = useMemo((): [number, number] => {
-    if (selectedStation) {
-      const coords = extractCoordinates(selectedStation.google_maps_url);
-      if (coords) return [coords.lat, coords.lng];
-    }
-    
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    // Calculate initial center
+    let initialCenter: [number, number] = [24.7136, 46.6753]; // Saudi Arabia center
+    let initialZoom = 6;
+
     if (stationsWithCoords.length > 0) {
       const avgLat = stationsWithCoords.reduce((sum, s) => sum + s.latitude, 0) / stationsWithCoords.length;
       const avgLng = stationsWithCoords.reduce((sum, s) => sum + s.longitude, 0) / stationsWithCoords.length;
-      return [avgLat, avgLng];
+      initialCenter = [avgLat, avgLng];
     }
-    
-    // Default to Saudi Arabia center
-    return [24.7136, 46.6753];
-  }, [stationsWithCoords, selectedStation]);
 
-  const mapZoom = selectedStation ? 14 : 6;
+    // Create map
+    const map = L.map(mapContainerRef.current, {
+      center: initialCenter,
+      zoom: initialZoom,
+      scrollWheelZoom: true,
+    });
+
+    // Add tile layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Add/update markers
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current.clear();
+
+    // Add new markers
+    stationsWithCoords.forEach(station => {
+      const isSelected = selectedStation?.id === station.id;
+      const marker = L.marker([station.latitude, station.longitude], {
+        icon: createFlameIcon(isSelected),
+      });
+
+      // Create popup content
+      const popupContent = `
+        <div style="min-width: 180px; padding: 8px;">
+          <h4 style="font-weight: bold; margin-bottom: 4px;">${station.name}</h4>
+          <p style="color: #666; font-size: 12px; margin-bottom: 8px;">${station.city || ""} - ${station.region}</p>
+          ${station.phone ? `<a href="tel:${station.phone}" style="color: #8A2F43; font-size: 12px;">${station.phone}</a>` : ""}
+          ${station.google_maps_url ? `<a href="${station.google_maps_url}" target="_blank" style="color: #D4A853; font-size: 12px; margin-left: 8px;">${t("stations.directions")}</a>` : ""}
+        </div>
+      `;
+
+      marker.bindPopup(popupContent);
+      marker.on("click", () => onStationSelect(station));
+      marker.addTo(map);
+
+      markersRef.current.set(station.id, marker);
+    });
+  }, [stationsWithCoords, selectedStation, onStationSelect, t]);
+
+  // Handle selected station change
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Update all marker icons
+    stationsWithCoords.forEach(station => {
+      const marker = markersRef.current.get(station.id);
+      if (marker) {
+        const isSelected = selectedStation?.id === station.id;
+        marker.setIcon(createFlameIcon(isSelected));
+      }
+    });
+
+    // Fly to selected station
+    if (selectedStation) {
+      const coords = extractCoordinates(selectedStation.google_maps_url);
+      if (coords) {
+        map.flyTo([coords.lat, coords.lng], 14, { duration: 1 });
+        
+        // Open popup for selected marker
+        const marker = markersRef.current.get(selectedStation.id);
+        if (marker) {
+          marker.openPopup();
+        }
+      }
+    }
+  }, [selectedStation, stationsWithCoords]);
 
   if (stationsWithCoords.length === 0) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/20">
+      <div className="w-full h-full flex items-center justify-center bg-muted/20 min-h-[400px] lg:min-h-[600px]">
         <div className="text-center p-6">
           <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">{t("stations.noStationsOnMap")}</p>
@@ -117,69 +180,11 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
   }
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={mapZoom}
-      className="w-full h-full min-h-[400px] lg:min-h-[600px] z-0"
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      
-      <MapController center={mapCenter} zoom={mapZoom} />
-      
-      {stationsWithCoords.map((station) => {
-        const isSelected = selectedStation?.id === station.id;
-        
-        return (
-          <Marker
-            key={station.id}
-            position={[station.latitude, station.longitude]}
-            icon={createFlameIcon(isSelected)}
-            eventHandlers={{
-              click: () => onStationSelect(station),
-            }}
-          >
-            <Popup className="aws-popup">
-              <div className="p-2 min-w-[200px]">
-                <h4 className="font-bold text-foreground mb-1">{station.name}</h4>
-                <p className="text-sm text-muted-foreground mb-2">{station.city} - {station.region}</p>
-                
-                {station.address && (
-                  <p className="text-xs text-muted-foreground mb-2">{station.address}</p>
-                )}
-                
-                <div className="flex items-center gap-2 mt-2">
-                  {station.phone && (
-                    <a
-                      href={`tel:${station.phone}`}
-                      className="flex items-center gap-1 text-xs text-primary hover:text-secondary"
-                      dir="ltr"
-                    >
-                      <Phone className="w-3 h-3" />
-                      {station.phone}
-                    </a>
-                  )}
-                  {station.google_maps_url && (
-                    <a
-                      href={station.google_maps_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-secondary hover:text-primary"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      {t("stations.directions")}
-                    </a>
-                  )}
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MapContainer>
+    <div 
+      ref={mapContainerRef} 
+      className="w-full h-full min-h-[400px] lg:min-h-[600px]"
+      style={{ zIndex: 0 }}
+    />
   );
 };
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, Suspense, lazy } from "react";
+import { useState, Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoFlame from "@/assets/logo-flame.png";
 
-// Lazy load the map component
+// Lazy load the map component - force fresh import
 const StationsMap = lazy(() => import("@/components/ui/StationsMap"));
 
 interface Region {
