@@ -1,11 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, ExternalLink, Phone, Fuel, Car, Store } from "lucide-react";
+import { MapPin, ExternalLink, Phone, Fuel, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoFlame from "@/assets/logo-flame.png";
+
+// Lazy load the map component
+const StationsMap = lazy(() => import("@/components/ui/StationsMap"));
 
 interface Region {
   id: string;
@@ -26,16 +29,6 @@ interface Station {
   google_maps_url: string | null;
   image_url: string | null;
 }
-
-// Extract coordinates from Google Maps URL
-const extractCoordinates = (url: string | null): { lat: number; lng: number } | null => {
-  if (!url) return null;
-  const match = url.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
-  if (match) {
-    return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
-  }
-  return null;
-};
 
 const Stations = () => {
   const { t, language } = useLanguage();
@@ -81,22 +74,6 @@ const Stations = () => {
   const stationCount = stations?.length || 78;
   const regionCount = regions?.length || 5;
   const cityCount = stations ? [...new Set(stations.map((s) => s.city))].filter(Boolean).length : 30;
-
-  // Generate map URL with all stations or selected station
-  const mapEmbedUrl = useMemo(() => {
-    const apiKey = ""; // Google Maps embed doesn't require API key for basic usage
-    const baseUrl = "https://www.google.com/maps/embed/v1/place";
-    
-    if (selectedStation?.google_maps_url) {
-      const coords = extractCoordinates(selectedStation.google_maps_url);
-      if (coords) {
-        return `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=15&output=embed`;
-      }
-    }
-    
-    // Default to Saudi Arabia center with all regions
-    return "https://www.google.com/maps?q=24.7136,46.6753&z=5&output=embed";
-  }, [selectedStation]);
 
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);
@@ -282,104 +259,88 @@ const Stations = () => {
               )}
             </div>
 
-            {/* Map */}
+            {/* Interactive Map with Leaflet */}
             <div className="relative bg-muted/20">
-              {selectedStation ? (
-                <>
-                  {/* Station Details Overlay */}
-                  <div className={`absolute top-4 ${language === "ar" ? "right-4" : "left-4"} z-10 bg-card/95 backdrop-blur-sm rounded-2xl shadow-aws-lg p-4 max-w-xs border border-border/50`}>
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                        <img src={logoFlame} alt="AWS" className="w-8 h-8 brightness-0 invert" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-foreground">{selectedStation.name}</h4>
-                        <p className="text-sm text-muted-foreground">{selectedStation.city}</p>
-                      </div>
+              <Suspense fallback={
+                <div className="w-full h-full min-h-[400px] lg:min-h-[600px] flex items-center justify-center">
+                  <div className="text-center">
+                    <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+                    <p className="text-muted-foreground">{t("stations.loadingMap")}</p>
+                  </div>
+                </div>
+              }>
+                {filteredStations && (
+                  <StationsMap
+                    stations={filteredStations}
+                    selectedStation={selectedStation}
+                    onStationSelect={handleStationClick}
+                  />
+                )}
+              </Suspense>
+              
+              {/* Selected Station Details Overlay */}
+              {selectedStation && (
+                <div className={`absolute top-4 ${language === "ar" ? "right-4" : "left-4"} z-[1000] bg-card/95 backdrop-blur-sm rounded-2xl shadow-aws-lg p-4 max-w-xs border border-border/50`}>
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+                      <img src={logoFlame} alt="AWS" className="w-8 h-8 brightness-0 invert" />
                     </div>
-                    
-                    {selectedStation.address && (
-                      <p className="text-sm text-muted-foreground mb-3">{selectedStation.address}</p>
-                    )}
-                    
-                    {/* Products */}
-                    {selectedStation.products && selectedStation.products.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {selectedStation.products.map((product, idx) => (
-                          <span key={idx} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                            {product}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* Services */}
-                    {selectedStation.services && selectedStation.services.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {selectedStation.services.map((service, idx) => (
-                          <span key={idx} className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
-                            {service}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-3">
-                      {selectedStation.phone && (
-                        <a
-                          href={`tel:${selectedStation.phone}`}
-                          className="flex items-center gap-1 text-sm text-primary hover:text-secondary transition-colors"
-                          dir="ltr"
-                        >
-                          <Phone className="w-4 h-4" />
-                          {selectedStation.phone}
-                        </a>
-                      )}
-                      {selectedStation.google_maps_url && (
-                        <a
-                          href={selectedStation.google_maps_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          {t("stations.directions")}
-                        </a>
-                      )}
+                    <div>
+                      <h4 className="font-bold text-foreground">{selectedStation.name}</h4>
+                      <p className="text-sm text-muted-foreground">{selectedStation.city}</p>
                     </div>
                   </div>
                   
-                  {/* Map iframe */}
-                  <iframe
-                    src={mapEmbedUrl}
-                    className="w-full h-full min-h-[400px] lg:min-h-[600px]"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title={selectedStation.name}
-                  />
-                </>
-              ) : (
-                <>
-                  {/* Default Map View */}
-                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="text-center bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-aws-lg border border-border/50 pointer-events-auto">
-                      <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4" />
-                      <h4 className="font-bold text-foreground mb-2">{t("stations.selectStation")}</h4>
-                      <p className="text-sm text-muted-foreground">{t("stations.selectStationDesc")}</p>
+                  {selectedStation.address && (
+                    <p className="text-sm text-muted-foreground mb-3">{selectedStation.address}</p>
+                  )}
+                  
+                  {/* Products */}
+                  {selectedStation.products && selectedStation.products.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {selectedStation.products.map((product, idx) => (
+                        <span key={idx} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          {product}
+                        </span>
+                      ))}
                     </div>
+                  )}
+                  
+                  {/* Services */}
+                  {selectedStation.services && selectedStation.services.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {selectedStation.services.map((service, idx) => (
+                        <span key={idx} className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
+                          {service}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center gap-3">
+                    {selectedStation.phone && (
+                      <a
+                        href={`tel:${selectedStation.phone}`}
+                        className="flex items-center gap-1 text-sm text-primary hover:text-secondary transition-colors"
+                        dir="ltr"
+                      >
+                        <Phone className="w-4 h-4" />
+                        {selectedStation.phone}
+                      </a>
+                    )}
+                    {selectedStation.google_maps_url && (
+                      <a
+                        href={selectedStation.google_maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {t("stations.directions")}
+                      </a>
+                    )}
                   </div>
-                  <iframe
-                    src={mapEmbedUrl}
-                    className="w-full h-full min-h-[400px] lg:min-h-[600px] opacity-50"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="AWS Stations Map"
-                  />
-                </>
+                </div>
               )}
             </div>
           </div>

@@ -326,3 +326,53 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(350 70% 22%);
 }
+
+/* Custom Leaflet Marker Styles */
+.flame-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  transition: all 0.3s ease;
+}
+
+.flame-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  transition: all 0.3s ease;
+}
+
+.flame-marker:hover img,
+.flame-marker.selected img {
+  transform: scale(1.2);
+  filter: drop-shadow(0 6px 12px rgba(138, 47, 67, 0.5));
+}
+
+.flame-marker.selected {
+  width: 48px;
+  height: 48px;
+  z-index: 1000 !important;
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide default Leaflet marker icon */
+.leaflet-marker-icon.leaflet-div-icon {
+  background: transparent;
+  border: none;
+}
