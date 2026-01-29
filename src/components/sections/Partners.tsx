@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,28 +97,23 @@ const Partners = () => {
     [language],
   );
 
-  // Memoize autoplay plugin to prevent re-init loops
-  const autoplay = useMemo(
-    () =>
-      Autoplay({
-        delay: 2000,
-        stopOnInteraction: false,
-        stopOnMouseEnter: true,
-        playOnInit: true,
-      }),
-    [],
+  // Autoplay (useRef prevents re-init + ensures consistent behavior)
+  const autoplay = useRef(
+    Autoplay({
+      delay: 2200,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+      playOnInit: true,
+    }),
   );
 
-  const plugins = useMemo(() => [autoplay], [autoplay]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions, [autoplay.current]);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions, plugins);
-
-  // Ensure autoplay starts on mount
+  // Ensure autoplay is running (some browsers pause it initially)
   useEffect(() => {
-    if (emblaApi) {
-      autoplay.play();
-    }
-  }, [emblaApi, autoplay]);
+    if (!emblaApi) return;
+    autoplay.current.play();
+  }, [emblaApi]);
 
   // Render immediately (no IntersectionObserver) to avoid cards staying hidden
 

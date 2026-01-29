@@ -37,7 +37,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <Logo variant="white" size="lg" className="mb-6" />
+            <Logo variant="white" size="xl" className="mb-6" />
             <p className="text-white/70 leading-relaxed mb-6">
               {t("footer.description")}
             </p>
