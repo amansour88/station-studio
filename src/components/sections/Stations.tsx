@@ -1,38 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, ExternalLink, Navigation } from "lucide-react";
+import { MapPin, ExternalLink, Phone, Fuel, Car, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
-import stationDay from "@/assets/station-day.jpg";
-import stationNight from "@/assets/station-night.jpg";
-import serviceCenter from "@/assets/service-center.jpg";
-import hotel from "@/assets/hotel.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-// Fallback gallery images
-const galleryImages = [
-  {
-    image: stationDay,
-    title: "محطة متكاملة",
-    description: "تصميم عصري مع جميع الخدمات",
-  },
-  {
-    image: stationNight,
-    title: "خدمة على مدار الساعة",
-    description: "نعمل ليلاً ونهاراً لخدمتكم",
-  },
-  {
-    image: serviceCenter,
-    title: "مركز خدمة السيارات",
-    description: "صيانة متكاملة وغيار زيت وإطارات",
-  },
-  {
-    image: hotel,
-    title: "فنادق ومرافق",
-    description: "راحة المسافرين أولويتنا",
-  },
-];
+import logoFlame from "@/assets/logo-flame.png";
 
 interface Region {
   id: string;
@@ -54,9 +27,20 @@ interface Station {
   image_url: string | null;
 }
 
+// Extract coordinates from Google Maps URL
+const extractCoordinates = (url: string | null): { lat: number; lng: number } | null => {
+  if (!url) return null;
+  const match = url.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (match) {
+    return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+  }
+  return null;
+};
+
 const Stations = () => {
   const { t, language } = useLanguage();
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
   // Fetch regions from database
   const { data: regions, isLoading: regionsLoading } = useQuery({
@@ -98,38 +82,31 @@ const Stations = () => {
   const regionCount = regions?.length || 5;
   const cityCount = stations ? [...new Set(stations.map((s) => s.city))].filter(Boolean).length : 30;
 
-  // Get selected region map URL
-  const selectedRegionData = regions?.find(r => r.name === selectedRegion);
+  // Generate map URL with all stations or selected station
+  const mapEmbedUrl = useMemo(() => {
+    const apiKey = ""; // Google Maps embed doesn't require API key for basic usage
+    const baseUrl = "https://www.google.com/maps/embed/v1/place";
+    
+    if (selectedStation?.google_maps_url) {
+      const coords = extractCoordinates(selectedStation.google_maps_url);
+      if (coords) {
+        return `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=15&output=embed`;
+      }
+    }
+    
+    // Default to Saudi Arabia center with all regions
+    return "https://www.google.com/maps?q=24.7136,46.6753&z=5&output=embed";
+  }, [selectedStation]);
 
-  // Fallback gallery images with translations
-  const galleryImages = [
-    {
-      image: stationDay,
-      title: language === "ar" ? "محطة متكاملة" : "Complete Station",
-      description: language === "ar" ? "تصميم عصري مع جميع الخدمات" : "Modern design with all services",
-    },
-    {
-      image: stationNight,
-      title: language === "ar" ? "خدمة على مدار الساعة" : "24/7 Service",
-      description: language === "ar" ? "نعمل ليلاً ونهاراً لخدمتكم" : "Working day and night to serve you",
-    },
-    {
-      image: serviceCenter,
-      title: language === "ar" ? "مركز خدمة السيارات" : "Car Service Center",
-      description: language === "ar" ? "صيانة متكاملة وغيار زيت وإطارات" : "Complete maintenance and oil change",
-    },
-    {
-      image: hotel,
-      title: language === "ar" ? "فنادق ومرافق" : "Hotels & Facilities",
-      description: language === "ar" ? "راحة المسافرين أولويتنا" : "Traveler comfort is our priority",
-    },
-  ];
+  const handleStationClick = (station: Station) => {
+    setSelectedStation(station);
+  };
 
   return (
     <section id="stations" className="py-24 bg-muted/50">
       <div className="container px-4">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <span className="inline-block text-secondary font-semibold text-lg mb-4">
             {t("stations.label")}
           </span>
@@ -143,205 +120,269 @@ const Stations = () => {
           </p>
         </div>
 
-        {/* Regions Filter */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {regionsLoading ? (
-            Array.from({ length: 5 }).map((_, index) => (
-              <Skeleton key={index} className="h-12 w-32 rounded-full" />
-            ))
-          ) : (
-            <>
-              <button
-                onClick={() => setSelectedRegion("all")}
-                className={cn(
-                  "px-6 py-3 rounded-full shadow-sm transition-all duration-300 flex items-center gap-2",
-                  selectedRegion === "all"
-                    ? "bg-primary text-primary-foreground shadow-aws"
-                    : "bg-card border border-border hover:shadow-aws hover:border-secondary"
-                )}
-              >
-                <MapPin className="w-4 h-4" />
-                <span className="font-medium">جميع المناطق</span>
-              </button>
-              {regions?.map((region) => (
-                <button
-                  key={region.id}
-                  onClick={() => setSelectedRegion(region.name)}
-                  className={cn(
-                    "px-6 py-3 rounded-full shadow-sm transition-all duration-300 flex items-center gap-2",
-                    selectedRegion === region.name
-                      ? "bg-primary text-primary-foreground shadow-aws"
-                      : "bg-card border border-border hover:shadow-aws hover:border-secondary"
-                  )}
-                >
-                  <MapPin className="w-4 h-4" />
-                  <span className="font-medium">{region.name}</span>
-                </button>
-              ))}
-            </>
-          )}
-        </div>
-
-        {/* Region Map Link */}
-        {selectedRegionData?.map_url && (
-          <div className="text-center mb-8">
-            <a
-              href={selectedRegionData.map_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-full font-medium hover:bg-secondary/90 transition-colors shadow-gold"
-            >
-              <Navigation className="w-5 h-5" />
-              عرض محطات {selectedRegionData.name} على الخريطة
-            </a>
-          </div>
-        )}
-
         {/* Stats Banner */}
-        <div className="bg-primary rounded-3xl p-8 mb-16 relative overflow-hidden">
+        <div className="bg-primary rounded-3xl p-6 md:p-8 mb-12 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary to-aws-burgundy-dark opacity-90" />
-          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">{stationCount}</div>
-              <div className="text-white/80">محطة وقود</div>
+              <div className="text-3xl md:text-5xl font-bold text-secondary mb-2">{stationCount}</div>
+              <div className="text-white/80 text-sm md:text-base">{t("stations.stationCount")}</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">{regionCount}</div>
-              <div className="text-white/80">مناطق</div>
+              <div className="text-3xl md:text-5xl font-bold text-secondary mb-2">{regionCount}</div>
+              <div className="text-white/80 text-sm md:text-base">{t("stations.regionCount")}</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">{cityCount}+</div>
-              <div className="text-white/80">مدينة ومحافظة</div>
+              <div className="text-3xl md:text-5xl font-bold text-secondary mb-2">{cityCount}+</div>
+              <div className="text-white/80 text-sm md:text-base">{t("stations.cityCount")}</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">24/7</div>
-              <div className="text-white/80">خدمة مستمرة</div>
+              <div className="text-3xl md:text-5xl font-bold text-secondary mb-2">24/7</div>
+              <div className="text-white/80 text-sm md:text-base">{t("stations.alwaysOpen")}</div>
             </div>
           </div>
         </div>
 
-        {/* Stations List */}
-        {stationsLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-48 rounded-2xl" />
-            ))}
+        {/* Main Content - Map + Stations List */}
+        <div className="bg-card rounded-3xl shadow-aws-lg border border-border/50 overflow-hidden">
+          {/* Regions Filter */}
+          <div className="p-4 md:p-6 border-b border-border/50 bg-muted/30">
+            <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+              {regionsLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <Skeleton key={index} className="h-10 w-24 rounded-full" />
+                ))
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setSelectedRegion("all");
+                      setSelectedStation(null);
+                    }}
+                    className={cn(
+                      "px-4 md:px-6 py-2 md:py-3 rounded-full text-sm md:text-base shadow-sm transition-all duration-300 flex items-center gap-2",
+                      selectedRegion === "all"
+                        ? "bg-primary text-primary-foreground shadow-aws"
+                        : "bg-card border border-border hover:shadow-aws hover:border-secondary"
+                    )}
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span className="font-medium">{t("stations.allRegions")}</span>
+                  </button>
+                  {regions?.map((region) => (
+                    <button
+                      key={region.id}
+                      onClick={() => {
+                        setSelectedRegion(region.name);
+                        setSelectedStation(null);
+                      }}
+                      className={cn(
+                        "px-4 md:px-6 py-2 md:py-3 rounded-full text-sm md:text-base shadow-sm transition-all duration-300 flex items-center gap-2",
+                        selectedRegion === region.name
+                          ? "bg-primary text-primary-foreground shadow-aws"
+                          : "bg-card border border-border hover:shadow-aws hover:border-secondary"
+                      )}
+                    >
+                      <MapPin className="w-4 h-4" />
+                      <span className="font-medium">{region.name}</span>
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
-        ) : filteredStations && filteredStations.length > 0 ? (
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold text-foreground mb-8 text-center">
-              {selectedRegion === "all" ? "محطاتنا" : `محطات ${selectedRegion}`}
-              <span className="text-muted-foreground text-lg font-normal mr-2">
-                ({filteredStations.length} محطة)
-              </span>
-            </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredStations.map((station) => (
-                <div
-                  key={station.id}
-                  className="bg-card rounded-2xl p-6 shadow-aws border border-border/50 hover:shadow-aws-lg hover:border-secondary transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-foreground mb-1">
-                        {station.name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {station.city} - {station.region}
-                      </p>
+
+          {/* Map + List Container */}
+          <div className="grid lg:grid-cols-2 min-h-[600px]">
+            {/* Stations List */}
+            <div className={`border-b lg:border-b-0 ${language === "ar" ? "lg:border-l" : "lg:border-r"} border-border/50 overflow-y-auto max-h-[400px] lg:max-h-[600px]`}>
+              <div className="p-4 border-b border-border/50 bg-muted/20 sticky top-0 z-10">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  <img src={logoFlame} alt="AWS" className="w-5 h-5" />
+                  {selectedRegion === "all" 
+                    ? t("stations.ourStations") 
+                    : `${t("stations.stationsIn")} ${selectedRegion}`}
+                  <span className="text-muted-foreground font-normal text-sm">
+                    ({filteredStations?.length || 0} {t("stations.station")})
+                  </span>
+                </h3>
+              </div>
+              
+              {stationsLoading ? (
+                <div className="p-4 space-y-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Skeleton key={index} className="h-24 rounded-xl" />
+                  ))}
+                </div>
+              ) : filteredStations && filteredStations.length > 0 ? (
+                <div className="divide-y divide-border/50">
+                  {filteredStations.map((station) => (
+                    <button
+                      key={station.id}
+                      onClick={() => handleStationClick(station)}
+                      className={cn(
+                        "w-full text-start p-4 hover:bg-muted/50 transition-all duration-200",
+                        selectedStation?.id === station.id && "bg-primary/5 border-s-4 border-primary"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                          selectedStation?.id === station.id 
+                            ? "bg-primary" 
+                            : "bg-primary/10"
+                        )}>
+                          <img 
+                            src={logoFlame} 
+                            alt="AWS" 
+                            className={cn(
+                              "w-6 h-6",
+                              selectedStation?.id === station.id && "brightness-0 invert"
+                            )} 
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-foreground mb-1 truncate">
+                            {station.name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {station.city} - {station.region}
+                          </p>
+                          
+                          {/* Quick Info Icons */}
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {station.products && station.products.length > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Fuel className="w-3 h-3 text-primary" />
+                                {station.products.length}
+                              </span>
+                            )}
+                            {station.services && station.services.length > 0 && (
+                              <span className="flex items-center gap-1">
+                                <Car className="w-3 h-3 text-secondary" />
+                                {station.services.length}
+                              </span>
+                            )}
+                            {station.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground">{t("stations.noStations")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Map */}
+            <div className="relative bg-muted/20">
+              {selectedStation ? (
+                <>
+                  {/* Station Details Overlay */}
+                  <div className={`absolute top-4 ${language === "ar" ? "right-4" : "left-4"} z-10 bg-card/95 backdrop-blur-sm rounded-2xl shadow-aws-lg p-4 max-w-xs border border-border/50`}>
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+                        <img src={logoFlame} alt="AWS" className="w-8 h-8 brightness-0 invert" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-foreground">{selectedStation.name}</h4>
+                        <p className="text-sm text-muted-foreground">{selectedStation.city}</p>
+                      </div>
                     </div>
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-primary" />
+                    
+                    {selectedStation.address && (
+                      <p className="text-sm text-muted-foreground mb-3">{selectedStation.address}</p>
+                    )}
+                    
+                    {/* Products */}
+                    {selectedStation.products && selectedStation.products.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {selectedStation.products.map((product, idx) => (
+                          <span key={idx} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            {product}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Services */}
+                    {selectedStation.services && selectedStation.services.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {selectedStation.services.map((service, idx) => (
+                          <span key={idx} className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-3">
+                      {selectedStation.phone && (
+                        <a
+                          href={`tel:${selectedStation.phone}`}
+                          className="flex items-center gap-1 text-sm text-primary hover:text-secondary transition-colors"
+                          dir="ltr"
+                        >
+                          <Phone className="w-4 h-4" />
+                          {selectedStation.phone}
+                        </a>
+                      )}
+                      {selectedStation.google_maps_url && (
+                        <a
+                          href={selectedStation.google_maps_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          {t("stations.directions")}
+                        </a>
+                      )}
                     </div>
                   </div>
                   
-                  {station.address && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {station.address}
-                    </p>
-                  )}
-
-                  {/* Products */}
-                  {station.products && station.products.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {station.products.slice(0, 4).map((product, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
-                        >
-                          {product}
-                        </span>
-                      ))}
+                  {/* Map iframe */}
+                  <iframe
+                    src={mapEmbedUrl}
+                    className="w-full h-full min-h-[400px] lg:min-h-[600px]"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={selectedStation.name}
+                  />
+                </>
+              ) : (
+                <>
+                  {/* Default Map View */}
+                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                    <div className="text-center bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-aws-lg border border-border/50 pointer-events-auto">
+                      <img src={logoFlame} alt="AWS" className="w-16 h-16 mx-auto mb-4" />
+                      <h4 className="font-bold text-foreground mb-2">{t("stations.selectStation")}</h4>
+                      <p className="text-sm text-muted-foreground">{t("stations.selectStationDesc")}</p>
                     </div>
-                  )}
-
-                  {/* Services */}
-                  {station.services && station.services.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {station.services.slice(0, 3).map((service, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full"
-                        >
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    {station.phone && (
-                      <a
-                        href={`tel:${station.phone}`}
-                        className="text-sm text-primary hover:text-secondary transition-colors"
-                        dir="ltr"
-                      >
-                        {station.phone}
-                      </a>
-                    )}
-                    
-                    {station.google_maps_url && (
-                      <a
-                        href={station.google_maps_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        الموقع
-                      </a>
-                    )}
                   </div>
-                </div>
-              ))}
+                  <iframe
+                    src={mapEmbedUrl}
+                    className="w-full h-full min-h-[400px] lg:min-h-[600px] opacity-50"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="AWS Stations Map"
+                  />
+                </>
+              )}
             </div>
           </div>
-        ) : selectedRegion !== "all" ? (
-          <div className="text-center p-12 bg-card rounded-2xl border border-border/50 mb-16">
-            <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">لا توجد محطات في هذه المنطقة حالياً</p>
-          </div>
-        ) : null}
-
-        {/* Stations Gallery */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {galleryImages.map((station, index) => (
-            <div
-              key={index}
-              className="group relative rounded-2xl overflow-hidden shadow-aws hover-lift"
-            >
-              <img
-                src={station.image}
-                alt={station.title}
-                className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <h3 className="text-lg font-bold mb-1">{station.title}</h3>
-                <p className="text-white/80 text-sm">{station.description}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
