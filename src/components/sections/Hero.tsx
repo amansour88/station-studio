@@ -117,18 +117,18 @@ const Hero = () => {
             <Button
               size="lg"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection("#contact")}
+              onClick={() => scrollToSection("#services")}
             >
-              {t("nav.contact")}
+              {t("hero.cta")}
               <ArrowIcon className={`w-5 h-5 ${language === "ar" ? "mr-2" : "ml-2"}`} />
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-bold text-lg px-8 py-6 transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection("#services")}
+              onClick={() => scrollToSection("#contact")}
             >
-              {t("hero.cta")}
+              {t("nav.contact")}
             </Button>
           </div>
 
