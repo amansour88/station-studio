@@ -117,9 +117,9 @@ const Hero = () => {
             <Button
               size="lg"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection(ctaLink)}
+              onClick={() => scrollToSection("#contact")}
             >
-              {ctaText}
+              {t("nav.contact")}
               <ArrowIcon className={`w-5 h-5 ${language === "ar" ? "mr-2" : "ml-2"}`} />
             </Button>
             <Button
