@@ -79,11 +79,14 @@ const Hero = () => {
               <span>نحو رحلة </span>
               <span className="text-gradient-gold">بلا حدود</span>
               {/* Animated arrows - car path effect */}
-              <span className="inline-flex items-center mr-3 align-baseline translate-y-1">
-                <span className="flex text-secondary text-xl md:text-3xl font-bold">
-                  <span className="animate-pulse opacity-40" style={{ animationDelay: "0.4s" }}>›</span>
-                  <span className="animate-pulse opacity-70 -mr-1" style={{ animationDelay: "0.2s" }}>›</span>
-                  <span className="animate-pulse opacity-100 -mr-1" style={{ animationDelay: "0s" }}>›</span>
+              <span className="inline-flex items-center mr-4 align-baseline translate-y-1">
+                <span className="flex text-secondary text-2xl md:text-4xl lg:text-5xl font-black tracking-tighter">
+                  <span className="animate-pulse opacity-20" style={{ animationDelay: "0.6s" }}>‹</span>
+                  <span className="animate-pulse opacity-30 -mr-2 md:-mr-3" style={{ animationDelay: "0.5s" }}>‹</span>
+                  <span className="animate-pulse opacity-45 -mr-2 md:-mr-3" style={{ animationDelay: "0.4s" }}>‹</span>
+                  <span className="animate-pulse opacity-60 -mr-2 md:-mr-3" style={{ animationDelay: "0.3s" }}>‹</span>
+                  <span className="animate-pulse opacity-80 -mr-2 md:-mr-3" style={{ animationDelay: "0.15s" }}>‹</span>
+                  <span className="animate-pulse opacity-100 -mr-2 md:-mr-3" style={{ animationDelay: "0s" }}>‹</span>
                 </span>
               </span>
             </h1>
