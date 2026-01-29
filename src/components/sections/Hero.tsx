@@ -77,26 +77,17 @@ const Hero = () => {
           ) : (
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
               <span>نحو رحلة </span>
-              {/* Road design with text inside */}
-              <span className="relative inline-block">
-                {/* Road background */}
-                <span className="absolute inset-y-1 -inset-x-4 md:-inset-x-6 bg-gradient-to-l from-white/30 via-white/15 to-transparent rounded-full" />
-                <span className="absolute inset-y-2 md:inset-y-3 -inset-x-3 md:-inset-x-5 bg-gradient-to-l from-gray-800/70 via-gray-700/50 to-transparent rounded-full" />
-                {/* Dashed center lines - top and bottom */}
-                <span className="absolute top-1 md:top-2 -left-2 -right-3 md:-right-4 h-[3px] flex gap-2 overflow-hidden">
-                  <span className="w-2 h-full bg-secondary/80 rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
-                  <span className="w-2 h-full bg-secondary/60 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
-                  <span className="w-2 h-full bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
-                  <span className="w-2 h-full bg-secondary/20 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }} />
+              <span className="text-gradient-gold">بلا حدود</span>
+              {/* Animated arrows - car path effect - pointing outward */}
+              <span className="inline-flex items-center mr-6 align-baseline translate-y-0.5">
+                <span className="flex text-secondary text-xl md:text-3xl lg:text-4xl font-black">
+                  <span className="animate-pulse opacity-100" style={{ animationDelay: "0s" }}>›</span>
+                  <span className="animate-pulse opacity-80 mr-1 md:mr-2" style={{ animationDelay: "0.15s" }}>›</span>
+                  <span className="animate-pulse opacity-60 mr-1 md:mr-2" style={{ animationDelay: "0.3s" }}>›</span>
+                  <span className="animate-pulse opacity-45 mr-1 md:mr-2" style={{ animationDelay: "0.4s" }}>›</span>
+                  <span className="animate-pulse opacity-30 mr-1 md:mr-2" style={{ animationDelay: "0.5s" }}>›</span>
+                  <span className="animate-pulse opacity-20 mr-1 md:mr-2" style={{ animationDelay: "0.6s" }}>›</span>
                 </span>
-                <span className="absolute bottom-1 md:bottom-2 -left-2 -right-3 md:-right-4 h-[3px] flex gap-2 overflow-hidden">
-                  <span className="w-2 h-full bg-secondary/80 rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
-                  <span className="w-2 h-full bg-secondary/60 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
-                  <span className="w-2 h-full bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
-                  <span className="w-2 h-full bg-secondary/20 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }} />
-                </span>
-                {/* Text */}
-                <span className="relative text-gradient-gold px-2">بلا حدود</span>
               </span>
             </h1>
           )}
