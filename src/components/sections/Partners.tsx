@@ -97,20 +97,28 @@ const Partners = () => {
     [language],
   );
 
-  // Memoize autoplay plugin to prevent re-init loops (which caused rapid dot flashing and weird swipe)
+  // Memoize autoplay plugin to prevent re-init loops
   const autoplay = useMemo(
     () =>
       Autoplay({
-        delay: 2500,
+        delay: 2000,
         stopOnInteraction: false,
         stopOnMouseEnter: true,
+        playOnInit: true,
       }),
     [],
   );
 
   const plugins = useMemo(() => [autoplay], [autoplay]);
 
-  const [emblaRef] = useEmblaCarousel(emblaOptions, plugins);
+  const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions, plugins);
+
+  // Ensure autoplay starts on mount
+  useEffect(() => {
+    if (emblaApi) {
+      autoplay.play();
+    }
+  }, [emblaApi, autoplay]);
 
   // Render immediately (no IntersectionObserver) to avoid cards staying hidden
 
