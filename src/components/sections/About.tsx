@@ -77,13 +77,13 @@ const About = () => {
           {/* Image */}
           <div className="relative">
             {isLoading ? (
-              <Skeleton className="w-full h-[400px] rounded-3xl" />
+              <Skeleton className="w-full h-[380px] rounded-3xl" />
             ) : (
-              <div className="relative rounded-3xl overflow-hidden shadow-aws-lg">
+              <div className="relative rounded-3xl overflow-hidden shadow-aws-lg scale-[0.95] origin-center">
                 <img
                   src={imageUrl}
                   alt={language === "ar" ? "محطة اوس" : "AWS Station"}
-                  className="w-full h-[400px] object-cover"
+                  className="w-full h-[380px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
               </div>
