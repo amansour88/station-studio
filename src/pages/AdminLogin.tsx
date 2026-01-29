@@ -157,8 +157,8 @@ const AdminLogin = () => {
         {/* Login Card */}
         <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-aws-lg p-8 border border-border/50">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-primary" />
+            <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Logo variant="flame-only" size="lg" />
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
               لوحة التحكم
