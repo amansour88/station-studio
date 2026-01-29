@@ -77,14 +77,12 @@ const Hero = () => {
           ) : (
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
               <span>نحو رحلة </span>
-              <span className="text-gradient-gold relative">
-                بلا حدود
-                {/* Decorative dots */}
-                <span className="absolute -left-2 top-1/2 -translate-y-1/2 flex gap-1">
-                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
-                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary/70 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
-                  <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
-                </span>
+              <span className="text-gradient-gold">بلا حدود</span>
+              {/* Decorative dots inline */}
+              <span className="inline-flex gap-1 mr-3 align-middle">
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary rounded-full animate-pulse" style={{ animationDelay: "0s" }} />
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary/70 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-secondary/40 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }} />
               </span>
             </h1>
           )}
