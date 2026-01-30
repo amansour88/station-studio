@@ -1,164 +1,396 @@
 
-# خطة تحسين سرعة تحميل الصفحة الرئيسية
+# خطة التحويل الشامل: إزالة Supabase + تسجيل الدخول باسم المستخدم + إرسال البريد الإلكتروني
 
-## المشكلة
-عند فتح الصفحة الرئيسية، يتم تحميل 6+ طلبات API بالتوازي مما يسبب بطء في ظهور المحتوى خاصة قسم Hero.
+## ملخص التعديلات الإضافية
+بناءً على طلبك، سيتم تعديل نظام المصادقة ليعمل بـ:
+- **اسم المستخدم** لتسجيل الدخول (بدلاً من البريد الإلكتروني)
+- **البريد الإلكتروني** لاستعادة كلمة المرور فقط
+- **إرسال بريد إلكتروني فعلي** عند طلب استعادة كلمة المرور
 
 ---
 
-## الحل 1: إضافة Persistent Database Connection
+## المهام الرئيسية
 
-### الملف: `php-api/config/database.php`
-تحسين الاتصال بقاعدة البيانات باستخدام اتصال دائم (Persistent Connection).
+### المرحلة 1: تبسيط API Client وإزالة Supabase
 
-```php
-$pdo = new PDO(
-    "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-    DB_USER,
-    DB_PASS,
-    [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-        PDO::ATTR_PERSISTENT => true, // ← إضافة هذا السطر
-    ]
-);
+**الملف:** `src/lib/api.ts`
+
+**التغييرات:**
+```text
+قبل:
+  - كشف تلقائي للبيئة (Lovable/Production)
+  - متغير USE_SUPABASE للتبديل
+  
+بعد:
+  - API_BASE_URL = "/api" فقط
+  - إزالة USE_SUPABASE نهائياً
 ```
 
 ---
 
-## الحل 2: إنشاء API موحد للصفحة الرئيسية
+### المرحلة 2: تحديث جدول المستخدمين في MySQL
 
-بدلاً من 6 طلبات منفصلة، نجمعها في طلب واحد.
+**الملف:** `php-api/database.sql`
 
-### ملف جديد: `php-api/homepage/data.php`
-يجلب جميع بيانات الصفحة الرئيسية في طلب واحد.
+**تحديث جدول users:**
+```text
+إضافة عمود username مباشرة في جدول users بدلاً من الاعتماد على profiles
+- username VARCHAR(50) NOT NULL UNIQUE
+- إضافة جدول password_reset_tokens لتخزين رموز إعادة التعيين
+```
 
-```php
-<?php
-require_once __DIR__ . '/../middleware/cors.php';
-require_once __DIR__ . '/../config/database.php';
+**جدول جديد:** `password_reset_tokens`
+```text
+- id VARCHAR(36)
+- user_id VARCHAR(36) 
+- token VARCHAR(64) - رمز فريد للتحقق
+- expires_at TIMESTAMP - صلاحية 1 ساعة
+- created_at TIMESTAMP
+```
 
-try {
-    $pdo = getDB();
-    
-    // Hero Section
-    $hero = $pdo->query("SELECT * FROM hero_section WHERE is_active = 1 LIMIT 1")->fetch();
-    
-    // About Section
-    $about = $pdo->query("SELECT * FROM about_section LIMIT 1")->fetch();
-    
-    // Services
-    $services = $pdo->query("SELECT * FROM services WHERE is_active = 1 ORDER BY display_order")->fetchAll();
-    
-    // Regions
-    $regions = $pdo->query("SELECT * FROM regions ORDER BY name")->fetchAll();
-    
-    // Stations
-    $stations = $pdo->query("SELECT * FROM stations ORDER BY region_id")->fetchAll();
-    
-    // Partners
-    $partners = $pdo->query("SELECT * FROM partners WHERE is_active = 1 ORDER BY display_order")->fetchAll();
-    
-    echo json_encode([
-        'hero' => $hero,
-        'about' => $about,
-        'services' => $services,
-        'regions' => $regions,
-        'stations' => $stations,
-        'partners' => $partners,
-    ]);
+---
 
-} catch (Exception $e) {
-    error_log("Homepage data error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to fetch homepage data']);
+### المرحلة 3: تعديل صفحة تسجيل الدخول
+
+**الملف:** `src/pages/AdminLogin.tsx`
+
+**التغييرات:**
+- إزالة كل imports من Supabase
+- تغيير الحقل من "البريد الإلكتروني" إلى "اسم المستخدم"
+- استخدام `signIn` من AuthContext مع username بدلاً من email
+- تحديث رسائل الخطأ
+
+**الواجهة الجديدة:**
+```text
++-----------------------------------+
+|      اسم المستخدم                 |
+|  [___________________]  👤        |
+|                                   |
+|      كلمة المرور                  |
+|  [___________________]  👁        |
+|                                   |
+|  [تسجيل الدخول]                   |
+|                                   |
+|  نسيت كلمة المرور؟                |
++-----------------------------------+
+```
+
+---
+
+### المرحلة 4: تحديث AuthContext
+
+**الملف:** `src/contexts/AuthContext.tsx`
+
+**التغييرات:**
+- تغيير `signIn(email, password)` إلى `signIn(username, password)`
+- تحديث LoginResponse ليشمل username
+
+**الملف:** `src/types/api.ts`
+
+**التغييرات:**
+```text
+interface User {
+  id: string;
+  username: string;  // إضافة
+  email: string;
+  role: "admin" | "editor";
 }
 ```
 
 ---
 
-## الحل 3: إضافة HTTP Caching Headers
+### المرحلة 5: تحديث PHP Login API
 
-### تعديل جميع ملفات PHP العامة (hero/get.php, about/get.php, إلخ)
+**الملف:** `php-api/auth/login.php`
 
-```php
-// في بداية الملف بعد CORS
-header("Cache-Control: public, max-age=300"); // 5 دقائق
-header("ETag: " . md5(json_encode($data)));
+**التغييرات:**
+```text
+قبل:
+  WHERE u.email = ?
+
+بعد:
+  WHERE u.username = ?
 ```
 
 ---
 
-## الحل 4: تحسين React باستخدام staleTime
+### المرحلة 6: إنشاء نظام استعادة كلمة المرور بالبريد
 
-### تعديل جميع useQuery في الأقسام العامة
+**الملفات الجديدة:**
 
-```typescript
-const { data: heroData, isLoading } = useQuery({
-  queryKey: ["hero-section"],
-  queryFn: async () => { ... },
-  staleTime: 5 * 60 * 1000, // 5 دقائق - لن يعيد الطلب
-  gcTime: 30 * 60 * 1000,   // 30 دقيقة في الذاكرة
-});
+**1. `php-api/auth/forgot-password.php`**
+```text
+المنطق:
+1. يستقبل البريد الإلكتروني
+2. يبحث عن المستخدم بالبريد
+3. يُنشئ رمز token عشوائي
+4. يحفظه في جدول password_reset_tokens
+5. يرسل بريد إلكتروني يحتوي على رابط إعادة التعيين
+```
+
+**2. `php-api/auth/reset-password-verify.php`**
+```text
+المنطق:
+1. يستقبل token و password الجديدة
+2. يتحقق من صلاحية الـ token
+3. يحدث كلمة المرور
+4. يحذف الـ token
+```
+
+**3. إعداد إرسال البريد:**
+```text
+خيارات الإرسال المتاحة:
+- PHPMailer مع SMTP (Gmail, Hostinger Mail, etc.)
+- Hostinger built-in mail()
+- Resend API (يحتاج مفتاح API)
+
+سنستخدم: PHPMailer مع SMTP لأنه الأكثر موثوقية
 ```
 
 ---
 
-## الحل 5: عرض المحتوى فوراً مع Fallback
+### المرحلة 7: تحديث صفحات استعادة كلمة المرور
 
-### تعديل Hero.tsx لعرض المحتوى الثابت أولاً
+**الملف:** `src/pages/ForgotPassword.tsx`
 
-بدلاً من إظهار Skeleton أثناء التحميل، نعرض المحتوى الافتراضي مباشرة.
+**التغييرات:**
+- إزالة Supabase imports
+- استخدام `api.post("/auth/forgot-password.php")`
+- إضافة رسالة نجاح واضحة
 
-```typescript
-// إزالة شرط isLoading من العرض الرئيسي
-// العنوان والوصف يظهران فوراً من الترجمات
-<h1 className="...">
-  <span>{t("hero.title")} </span>
-  <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
-</h1>
-```
+**الملف:** `src/pages/ResetPassword.tsx`
 
----
-
-## الحل 6: إضافة Database Indexes
-
-### SQL لتسريع الاستعلامات
-
-```sql
--- في phpMyAdmin على Hostinger
-ALTER TABLE hero_section ADD INDEX idx_active (is_active);
-ALTER TABLE services ADD INDEX idx_active_order (is_active, display_order);
-ALTER TABLE stations ADD INDEX idx_region (region_id);
-ALTER TABLE partners ADD INDEX idx_active_order (is_active, display_order);
-```
+**التغييرات:**
+- إزالة Supabase imports
+- قراءة token من URL parameters
+- استخدام `api.post("/auth/reset-password-verify.php")`
 
 ---
 
-## ملخص التغييرات
+### المرحلة 8: تحويل كل Sections للصفحة الرئيسية
+
+**الملفات المتأثرة:**
 
 | الملف | التغيير |
 |-------|---------|
-| `php-api/config/database.php` | إضافة Persistent Connection |
-| `php-api/homepage/data.php` | ملف جديد - API موحد |
-| `php-api/hero/get.php` | إضافة Cache headers |
-| `php-api/about/get.php` | إضافة Cache headers |
-| `php-api/services/list.php` | إضافة Cache headers |
-| `php-api/regions/list.php` | إضافة Cache headers |
-| `php-api/stations/list.php` | إضافة Cache headers |
-| `php-api/partners/list.php` | إضافة Cache headers |
-| `src/components/sections/Hero.tsx` | إضافة staleTime + إزالة loading state |
-| `src/components/sections/About.tsx` | إضافة staleTime |
-| `src/components/sections/Services.tsx` | إضافة staleTime |
-| `src/components/sections/Stations.tsx` | إضافة staleTime |
-| `src/components/sections/Partners.tsx` | إضافة staleTime |
-| `src/hooks/useHomepageData.ts` | ملف جديد - Hook موحد (اختياري) |
+| `Hero.tsx` | إزالة USE_SUPABASE، استخدام api.get فقط |
+| `About.tsx` | إزالة USE_SUPABASE، استخدام api.get فقط |
+| `Services.tsx` | إزالة USE_SUPABASE، استخدام api.get فقط |
+| `Stations.tsx` | إزالة USE_SUPABASE، استخدام api.get فقط |
+| `Partners.tsx` | إزالة USE_SUPABASE، استخدام api.get فقط |
+| `Contact.tsx` | إزالة USE_SUPABASE، استخدام api.post فقط |
+
+**نمط التغيير الموحد:**
+```text
+قبل:
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from("table")...
+  } else {
+    return api.get("/endpoint.php");
+  }
+
+بعد:
+  return api.get<Type>("/endpoint.php");
+```
 
 ---
 
-## النتيجة المتوقعة
+### المرحلة 9: إضافة نظام إعدادات الموقع
 
-- **التحميل الأول**: أسرع بـ 50-70% (طلب واحد بدل 6)
-- **الزيارات المتكررة**: فورية تقريباً (من الكاش)
-- **تجربة المستخدم**: المحتوى يظهر فوراً بدون Skeleton
+**جدول MySQL جديد:** `site_settings`
+```text
+- id VARCHAR(36)
+- setting_key VARCHAR(100) UNIQUE
+- setting_value TEXT
+- updated_at TIMESTAMP
+```
+
+**البيانات الافتراضية:**
+```text
+- facebook_url
+- twitter_url
+- instagram_url
+- linkedin_url
+- phone
+- email
+- address
+```
+
+**ملفات PHP جديدة:**
+- `php-api/settings/get.php`
+- `php-api/settings/update.php`
+
+**صفحة إدارة جديدة:**
+- `src/pages/admin/SiteSettings.tsx`
+
+**تحديث Footer:**
+- `src/components/layout/Footer.tsx` - جلب الإعدادات ديناميكياً
+
+---
+
+### المرحلة 10: إنشاء سكريبت البيانات الأولية
+
+**الملف:** `php-api/seed-data.php`
+
+**المحتوى:**
+```text
+1. إنشاء مستخدم Admin:
+   - username: admin
+   - email: admin@aws.sa
+   - password: admin123
+   - role: admin
+
+2. المناطق (5):
+   - القصيم، مكة، المدينة، حائل، عسير
+
+3. الخدمات (6):
+   - تعبئة الوقود، غسيل السيارات، غيار الزيت، سوبر ماركت، مطاعم، صيدلية
+
+4. المحطات (3 تجريبية):
+   - محطة بريدة، محطة عنيزة، محطة خميس مشيط
+
+5. إعدادات الموقع الافتراضية
+```
+
+---
+
+## إعداد البريد الإلكتروني على Hostinger
+
+### الخطوات المطلوبة منك:
+
+**1. إنشاء حساب بريد على Hostinger:**
+```text
+1. ادخل لوحة تحكم Hostinger
+2. اذهب إلى Emails
+3. أنشئ حساب بريد مثل: noreply@aws.sa
+4. احفظ بيانات الدخول
+```
+
+**2. إعداد ملف config/mail.php:**
+```text
+سأنشئ ملف إعدادات البريد
+تحتاج لتعبئة:
+- SMTP_HOST: smtp.hostinger.com
+- SMTP_PORT: 465
+- SMTP_USER: noreply@aws.sa
+- SMTP_PASS: كلمة مرور البريد
+```
+
+---
+
+## هيكل المجلدات النهائي
+
+```text
+public_html/
+├── api/
+│   ├── config/
+│   │   ├── database.php
+│   │   └── mail.php         ← جديد (إعدادات البريد)
+│   ├── middleware/
+│   │   ├── cors.php
+│   │   └── auth.php
+│   ├── vendor/               ← جديد (PHPMailer)
+│   │   └── phpmailer/
+│   ├── auth/
+│   │   ├── login.php         ← تعديل (username)
+│   │   ├── logout.php
+│   │   ├── check-session.php
+│   │   ├── change-password.php
+│   │   ├── forgot-password.php    ← جديد
+│   │   └── reset-password-verify.php  ← جديد
+│   ├── settings/             ← جديد
+│   │   ├── get.php
+│   │   └── update.php
+│   ├── hero/
+│   ├── about/
+│   ├── services/
+│   ├── regions/
+│   ├── stations/
+│   ├── partners/
+│   ├── messages/
+│   ├── users/
+│   ├── stats/
+│   ├── upload/
+│   └── seed-data.php         ← جديد
+├── uploads/
+├── index.html
+└── assets/
+```
+
+---
+
+## ملخص الملفات المتأثرة
+
+### ملفات تُعدّل:
+| الملف | التعديل |
+|-------|---------|
+| `src/lib/api.ts` | إزالة USE_SUPABASE |
+| `src/pages/AdminLogin.tsx` | تسجيل دخول باسم المستخدم |
+| `src/pages/ForgotPassword.tsx` | استخدام PHP API |
+| `src/pages/ResetPassword.tsx` | استخدام PHP API |
+| `src/contexts/AuthContext.tsx` | دعم username |
+| `src/types/api.ts` | إضافة username للـ User |
+| `src/components/sections/Hero.tsx` | إزالة Supabase |
+| `src/components/sections/About.tsx` | إزالة Supabase |
+| `src/components/sections/Services.tsx` | إزالة Supabase |
+| `src/components/sections/Stations.tsx` | إزالة Supabase |
+| `src/components/sections/Partners.tsx` | إزالة Supabase |
+| `src/components/sections/Contact.tsx` | إزالة Supabase |
+| `src/components/layout/Footer.tsx` | جلب إعدادات ديناميكياً |
+| `src/App.tsx` | إضافة route لـ SiteSettings |
+| `src/components/admin/AdminLayout.tsx` | إضافة رابط SiteSettings |
+| `php-api/auth/login.php` | البحث بـ username |
+| `php-api/database.sql` | تحديث الهيكل |
+
+### ملفات جديدة:
+| الملف | الغرض |
+|-------|-------|
+| `src/pages/admin/SiteSettings.tsx` | صفحة إعدادات الموقع |
+| `php-api/auth/forgot-password.php` | طلب استعادة كلمة المرور |
+| `php-api/auth/reset-password-verify.php` | تنفيذ إعادة التعيين |
+| `php-api/config/mail.php` | إعدادات SMTP |
+| `php-api/settings/get.php` | جلب إعدادات الموقع |
+| `php-api/settings/update.php` | تحديث إعدادات الموقع |
+| `php-api/seed-data.php` | بيانات أولية |
+
+---
+
+## خطوات ما بعد التنفيذ
+
+### 1. إعداد البريد الإلكتروني:
+```text
+1. أنشئ حساب noreply@aws.sa في Hostinger
+2. عدّل ملف config/mail.php ببيانات SMTP
+```
+
+### 2. رفع PHPMailer:
+```text
+1. حمّل PHPMailer من GitHub
+2. ارفعه في api/vendor/phpmailer/
+```
+
+### 3. تشغيل سكريبت البيانات:
+```text
+1. افتح https://aws.sa/api/seed-data.php
+2. انتظر رسالة النجاح
+3. احذف الملف بعد التشغيل
+```
+
+### 4. اختبار النظام:
+```text
+1. سجل دخول بـ admin / admin123
+2. غيّر كلمة المرور فوراً
+3. اختبر استعادة كلمة المرور
+```
+
+---
+
+## بيانات الدخول الافتراضية
+
+```text
+اسم المستخدم: admin
+كلمة المرور: admin123
+البريد (لاستعادة كلمة المرور): admin@aws.sa
+```
+
+**تنبيه أمني:** غيّر كلمة المرور فوراً بعد أول تسجيل دخول!
