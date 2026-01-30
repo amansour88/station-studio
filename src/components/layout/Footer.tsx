@@ -1,11 +1,38 @@
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Logo from "@/components/ui/Logo";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+
+// Default settings fallback
+const defaultSettings = {
+  facebook_url: "#",
+  twitter_url: "#",
+  instagram_url: "#",
+  linkedin_url: "#",
+  phone: "920008436",
+  email: "info@aws.sa",
+  address: "المملكة العربية السعودية - القصيم - بريدة",
+};
 
 const Footer = () => {
   const { t, language } = useLanguage();
   const currentYear = new Date().getFullYear();
+
+  // Fetch site settings
+  const { data: settings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: () => api.get<Record<string, string>>("/settings/get.php"),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000,     // 30 minutes in cache
+  });
+
+  // Merge with defaults
+  const siteSettings = {
+    ...defaultSettings,
+    ...settings,
+  };
 
   const quickLinks = [
     { name: t("nav.home"), href: "#home" },
@@ -30,6 +57,14 @@ const Footer = () => {
     }
   };
 
+  // Social media links with settings
+  const socialLinks = [
+    { icon: Facebook, url: siteSettings.facebook_url, label: "Facebook" },
+    { icon: Twitter, url: siteSettings.twitter_url, label: "Twitter" },
+    { icon: Instagram, url: siteSettings.instagram_url, label: "Instagram" },
+    { icon: Linkedin, url: siteSettings.linkedin_url, label: "LinkedIn" },
+  ];
+
   return (
     <footer className="bg-primary text-white">
       {/* Main Footer */}
@@ -42,18 +77,18 @@ const Footer = () => {
               {t("footer.description")}
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300">
-                <Linkedin className="w-5 h-5" />
-              </a>
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.url || "#"}
+                  target={social.url && social.url !== "#" ? "_blank" : undefined}
+                  rel={social.url && social.url !== "#" ? "noopener noreferrer" : undefined}
+                  className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-secondary hover:scale-110 transition-all duration-300"
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
           </div>
 
@@ -94,20 +129,27 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-center gap-3 group">
                 <Phone className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform duration-300" />
-                <a href="tel:920008436" className="text-white/70 hover:text-secondary transition-colors" dir="ltr">
-                  920008436
+                <a 
+                  href={`tel:${siteSettings.phone}`} 
+                  className="text-white/70 hover:text-secondary transition-colors" 
+                  dir="ltr"
+                >
+                  {siteSettings.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3 group">
                 <Mail className="w-5 h-5 text-secondary group-hover:scale-110 transition-transform duration-300" />
-                <a href="mailto:info@aws.sa" className="text-white/70 hover:text-secondary transition-colors">
-                  info@aws.sa
+                <a 
+                  href={`mailto:${siteSettings.email}`} 
+                  className="text-white/70 hover:text-secondary transition-colors"
+                >
+                  {siteSettings.email}
                 </a>
               </li>
               <li className="flex items-start gap-3 group">
                 <MapPin className="w-5 h-5 text-secondary flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-white/70 text-sm">
-                  {t("contact.addressValue")}
+                  {siteSettings.address || t("contact.addressValue")}
                 </span>
               </li>
             </ul>
