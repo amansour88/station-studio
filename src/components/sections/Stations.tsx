@@ -5,7 +5,8 @@ import { MapPin, ExternalLink, Phone, Fuel, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoFlame from "@/assets/logo-flame.png";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client.safe";
+import api, { USE_SUPABASE } from "@/lib/api";
 import type { Region, Station } from "@/types/api";
 
 // Lazy load the map component - force fresh import
@@ -20,8 +21,17 @@ const Stations = () => {
   const { data: regions, isLoading: regionsLoading } = useQuery({
     queryKey: ["regions"],
     queryFn: async () => {
-      const data = await api.get<Region[]>("/regions/list.php");
-      return data;
+      if (USE_SUPABASE) {
+        const { data, error } = await supabase
+          .from("regions")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+        if (error) throw error;
+        return data as Region[];
+      } else {
+        return api.get<Region[]>("/regions/list.php");
+      }
     },
   });
 
@@ -29,8 +39,17 @@ const Stations = () => {
   const { data: stations, isLoading: stationsLoading } = useQuery({
     queryKey: ["stations"],
     queryFn: async () => {
-      const data = await api.get<Station[]>("/stations/list.php");
-      return data;
+      if (USE_SUPABASE) {
+        const { data, error } = await supabase
+          .from("stations")
+          .select("*")
+          .eq("is_active", true)
+          .order("region", { ascending: true });
+        if (error) throw error;
+        return data as Station[];
+      } else {
+        return api.get<Station[]>("/stations/list.php");
+      }
     },
   });
 

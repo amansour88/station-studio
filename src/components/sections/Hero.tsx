@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationHero from "@/assets/station-hero.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client.safe";
+import api, { USE_SUPABASE } from "@/lib/api";
 import type { HeroSection } from "@/types/api";
 
 const Hero = () => {
@@ -19,8 +20,17 @@ const Hero = () => {
   const { data: heroData, isLoading } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
-      const data = await api.get<HeroSection | null>("/hero/get.php");
-      return data;
+      if (USE_SUPABASE) {
+        const { data, error } = await supabase
+          .from("hero_section")
+          .select("*")
+          .eq("is_active", true)
+          .single();
+        if (error) throw error;
+        return data as HeroSection;
+      } else {
+        return api.get<HeroSection | null>("/hero/get.php");
+      }
     },
   });
 

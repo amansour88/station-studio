@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationDay from "@/assets/station-day.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client.safe";
+import api, { USE_SUPABASE } from "@/lib/api";
 import type { AboutSection } from "@/types/api";
 
 const About = () => {
@@ -35,8 +36,16 @@ const About = () => {
   const { data: aboutData, isLoading } = useQuery({
     queryKey: ["about-section"],
     queryFn: async () => {
-      const data = await api.get<AboutSection | null>("/about/get.php");
-      return data;
+      if (USE_SUPABASE) {
+        const { data, error } = await supabase
+          .from("about_section")
+          .select("*")
+          .single();
+        if (error) throw error;
+        return data as AboutSection;
+      } else {
+        return api.get<AboutSection | null>("/about/get.php");
+      }
     },
   });
 
