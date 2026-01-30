@@ -14,6 +14,8 @@ interface Station {
   services: string[] | null;
   products: string[] | null;
   google_maps_url: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface StationsMapProps {
@@ -54,17 +56,22 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
 
-  // Process stations to get coordinates
+  // Process stations to get coordinates - check direct lat/lng first, then extract from URL
   const stationsWithCoords = useMemo(() => {
     return stations
       .map(station => {
+        // First try direct latitude/longitude fields
+        if (station.latitude && station.longitude) {
+          return { ...station, lat: station.latitude, lng: station.longitude };
+        }
+        // Then try extracting from google_maps_url
         const coords = extractCoordinates(station.google_maps_url);
         if (coords) {
-          return { ...station, latitude: coords.lat, longitude: coords.lng };
+          return { ...station, lat: coords.lat, lng: coords.lng };
         }
         return null;
       })
-      .filter((s): s is (Station & { latitude: number; longitude: number }) => s !== null);
+      .filter((s): s is (Station & { lat: number; lng: number }) => s !== null);
   }, [stations]);
 
   // Initialize map
@@ -76,8 +83,8 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
     let initialZoom = 6;
 
     if (stationsWithCoords.length > 0) {
-      const avgLat = stationsWithCoords.reduce((sum, s) => sum + s.latitude, 0) / stationsWithCoords.length;
-      const avgLng = stationsWithCoords.reduce((sum, s) => sum + s.longitude, 0) / stationsWithCoords.length;
+      const avgLat = stationsWithCoords.reduce((sum, s) => sum + s.lat, 0) / stationsWithCoords.length;
+      const avgLng = stationsWithCoords.reduce((sum, s) => sum + s.lng, 0) / stationsWithCoords.length;
       initialCenter = [avgLat, avgLng];
     }
 
@@ -117,7 +124,7 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
     // Add new markers
     stationsWithCoords.forEach(station => {
       const isSelected = selectedStation?.id === station.id;
-      const marker = L.marker([station.latitude, station.longitude], {
+      const marker = L.marker([station.lat, station.lng], {
         icon: createFlameIcon(isSelected),
       });
 
@@ -146,9 +153,15 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
 
     // Fly to selected station
     if (selectedStation) {
-      const coords = extractCoordinates(selectedStation.google_maps_url);
-      if (coords) {
-        map.flyTo([coords.lat, coords.lng], 14, { duration: 1 });
+      // First try direct lat/lng
+      if (selectedStation.latitude && selectedStation.longitude) {
+        map.flyTo([selectedStation.latitude, selectedStation.longitude], 14, { duration: 1 });
+      } else {
+        // Then try extracting from URL
+        const coords = extractCoordinates(selectedStation.google_maps_url);
+        if (coords) {
+          map.flyTo([coords.lat, coords.lng], 14, { duration: 1 });
+        }
       }
     }
   }, [selectedStation, stationsWithCoords]);

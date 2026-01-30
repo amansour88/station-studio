@@ -32,14 +32,18 @@ const About = () => {
     },
   ];
 
-  const { data: aboutData, isLoading } = useQuery({
+  const { data: aboutData, isLoading, isError } = useQuery({
     queryKey: ["about-section"],
     queryFn: async () => {
       return api.get<AboutSection | null>("/about/get.php");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000,   // 30 minutes in cache
+    retry: 1, // Only retry once
   });
+
+  // Show content immediately, don't wait for failed API
+  const showLoading = isLoading && !isError;
 
   // Parse content into paragraphs
   const content = aboutData?.content || "";
@@ -73,7 +77,7 @@ const About = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
           {/* Image */}
           <div className="relative">
-            {isLoading ? (
+            {showLoading ? (
               <Skeleton className="w-full h-[380px] rounded-3xl" />
             ) : (
               <div className="relative rounded-3xl overflow-hidden shadow-aws-lg scale-[0.95] origin-center">
@@ -94,7 +98,7 @@ const About = () => {
 
           {/* Content */}
           <div className={language === "ar" ? "lg:pr-8" : "lg:pl-8"}>
-            {isLoading ? (
+            {showLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-6 w-full" />
                 <Skeleton className="h-6 w-5/6" />
