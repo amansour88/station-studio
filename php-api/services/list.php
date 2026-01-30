@@ -17,6 +17,12 @@ try {
     $stmt->execute();
     $services = $stmt->fetchAll();
 
+    // Add caching headers for public requests only (5 minutes)
+    if (!$includeInactive) {
+        header("Cache-Control: public, max-age=300");
+        header("ETag: " . md5(json_encode($services)));
+    }
+    
     echo json_encode($services);
 
 } catch (Exception $e) {

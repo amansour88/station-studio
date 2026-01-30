@@ -26,6 +26,12 @@ try {
         }
     }
 
+    // Add caching headers for public requests only (5 minutes)
+    if (!$includeInactive) {
+        header("Cache-Control: public, max-age=300");
+        header("ETag: " . md5(json_encode($stations)));
+    }
+    
     echo json_encode($stations);
 
 } catch (Exception $e) {

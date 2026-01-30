@@ -1,7 +1,6 @@
 import { ArrowLeft, ArrowRight, MapPin, Fuel, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton";
 import stationHero from "@/assets/station-hero.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client.safe";
@@ -17,7 +16,7 @@ const Hero = () => {
     { number: "1998", label: t("hero.founded"), icon: Calendar },
   ];
 
-  const { data: heroData, isLoading } = useQuery({
+  const { data: heroData } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
       if (USE_SUPABASE) {
@@ -32,6 +31,8 @@ const Hero = () => {
         return api.get<HeroSection | null>("/hero/get.php");
       }
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes - won't refetch
+    gcTime: 30 * 60 * 1000,   // 30 minutes in cache
   });
 
   const scrollToSection = (href: string) => {
@@ -78,35 +79,27 @@ const Hero = () => {
             </span>
           </div>
 
-          {/* Main Heading - New Slogan */}
-          {isLoading ? (
-            <Skeleton className="h-20 w-3/4 mx-auto mb-6 bg-white/10" />
-          ) : (
-            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
-              <span>{t("hero.title")} </span>
-              <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
-              {/* Animated arrows - car path effect */}
-              <span className={`inline-flex items-center ${language === "ar" ? "mr-6" : "ml-6"} align-baseline translate-y-0.5`}>
-                <span className={`flex text-secondary text-xl md:text-3xl lg:text-4xl font-black ${language === "en" ? "flex-row-reverse" : ""}`}>
-                  <span className="animate-pulse opacity-100" style={{ animationDelay: "0s" }}>›</span>
-                  <span className={`animate-pulse opacity-80 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.15s" }}>›</span>
-                  <span className={`animate-pulse opacity-60 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.3s" }}>›</span>
-                  <span className={`animate-pulse opacity-45 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.4s" }}>›</span>
-                  <span className={`animate-pulse opacity-30 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.5s" }}>›</span>
-                  <span className={`animate-pulse opacity-20 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.6s" }}>›</span>
-                </span>
+          {/* Main Heading - Show immediately with translations */}
+          <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
+            <span>{t("hero.title")} </span>
+            <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
+            {/* Animated arrows - car path effect */}
+            <span className={`inline-flex items-center ${language === "ar" ? "mr-6" : "ml-6"} align-baseline translate-y-0.5`}>
+              <span className={`flex text-secondary text-xl md:text-3xl lg:text-4xl font-black ${language === "en" ? "flex-row-reverse" : ""}`}>
+                <span className="animate-pulse opacity-100" style={{ animationDelay: "0s" }}>›</span>
+                <span className={`animate-pulse opacity-80 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.15s" }}>›</span>
+                <span className={`animate-pulse opacity-60 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.3s" }}>›</span>
+                <span className={`animate-pulse opacity-45 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.4s" }}>›</span>
+                <span className={`animate-pulse opacity-30 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.5s" }}>›</span>
+                <span className={`animate-pulse opacity-20 ${language === "ar" ? "mr-1 md:mr-2" : "ml-1 md:ml-2"}`} style={{ animationDelay: "0.6s" }}>›</span>
               </span>
-            </h1>
-          )}
+            </span>
+          </h1>
 
-          {/* Subtitle */}
-          {isLoading ? (
-            <Skeleton className="h-8 w-2/3 mx-auto mb-6 bg-white/10" />
-          ) : (
-            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-              {t("hero.description")}
-            </p>
-          )}
+          {/* Subtitle - Show immediately */}
+          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            {t("hero.description")}
+          </p>
 
           {/* Million Customers Banner */}
           <div className="inline-flex items-center gap-4 bg-gradient-to-r from-secondary/30 via-secondary/20 to-secondary/30 backdrop-blur-sm rounded-full px-8 py-4 border border-secondary/50 mb-10 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>

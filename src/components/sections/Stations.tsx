@@ -33,6 +33,8 @@ const Stations = () => {
         return api.get<Region[]>("/regions/list.php");
       }
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000,   // 30 minutes in cache
   });
 
   // Fetch stations from database
@@ -51,6 +53,8 @@ const Stations = () => {
         return api.get<Station[]>("/stations/list.php");
       }
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000,   // 30 minutes in cache
   });
 
   // Filter stations by region

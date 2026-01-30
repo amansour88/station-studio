@@ -9,11 +9,15 @@ try {
     $stmt->execute();
     $about = $stmt->fetch();
 
+    // Add caching headers (5 minutes)
+    header("Cache-Control: public, max-age=300");
+    
     if ($about) {
         // Parse JSON stats if stored as JSON string
         if (isset($about['stats']) && is_string($about['stats'])) {
             $about['stats'] = json_decode($about['stats'], true);
         }
+        header("ETag: " . md5(json_encode($about)));
         echo json_encode($about);
     } else {
         echo json_encode(null);
