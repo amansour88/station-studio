@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
-import { Mail, ArrowRight, CheckCircle } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -70,20 +70,13 @@ const ForgotPassword = () => {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse-slow" />
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <a href="/" className="inline-block">
-            <Logo size="xl" />
-          </a>
-        </div>
-
         {/* Card */}
         <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-aws-lg p-8 border border-border/50">
           {isSuccess ? (
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-500" />
-              </div>
+              <a href="/" className="inline-block mb-4">
+                <Logo size="xl" />
+              </a>
               <h1 className="text-2xl font-bold text-foreground mb-2">
                 تم الإرسال بنجاح
               </h1>
@@ -101,9 +94,9 @@ const ForgotPassword = () => {
           ) : (
             <>
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-8 h-8 text-primary" />
-                </div>
+                <a href="/" className="inline-block mb-4">
+                  <Logo size="xl" />
+                </a>
                 <h1 className="text-2xl font-bold text-foreground mb-2">
                   نسيت كلمة المرور؟
                 </h1>
