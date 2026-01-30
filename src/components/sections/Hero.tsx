@@ -1,10 +1,11 @@
 import { ArrowLeft, ArrowRight, MapPin, Fuel, Calendar, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationHero from "@/assets/station-hero.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+import type { HeroSection } from "@/types/api";
 
 const Hero = () => {
   const { t, language } = useLanguage();
@@ -18,13 +19,7 @@ const Hero = () => {
   const { data: heroData, isLoading } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("hero_section")
-        .select("*")
-        .eq("is_active", true)
-        .single();
-      
-      if (error) throw error;
+      const data = await api.get<HeroSection | null>("/hero/get.php");
       return data;
     },
   });

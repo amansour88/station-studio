@@ -1,9 +1,10 @@
 import { Award, Users, Target, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import stationDay from "@/assets/station-day.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+import type { AboutSection } from "@/types/api";
 
 const About = () => {
   const { t, language } = useLanguage();
@@ -34,12 +35,7 @@ const About = () => {
   const { data: aboutData, isLoading } = useQuery({
     queryKey: ["about-section"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("about_section")
-        .select("*")
-        .single();
-      
-      if (error) throw error;
+      const data = await api.get<AboutSection | null>("/about/get.php");
       return data;
     },
   });
