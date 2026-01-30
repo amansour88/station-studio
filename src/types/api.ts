@@ -5,12 +5,12 @@
 // User types
 export interface User {
   id: string;
+  username: string;
   email: string;
   role: "admin" | "editor";
 }
 
 export interface UserWithProfile extends User {
-  username: string | null;
   full_name: string | null;
   is_banned: boolean;
   created_at: string;
@@ -133,6 +133,17 @@ export interface DashboardStats {
   partners: number;
   messages: number;
   unreadMessages: number;
+}
+
+// Site Settings
+export interface SiteSettings {
+  facebook_url: string;
+  twitter_url: string;
+  instagram_url: string;
+  linkedin_url: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 
 // Generic responses

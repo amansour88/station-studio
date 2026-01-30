@@ -13,8 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client.safe";
-import api, { USE_SUPABASE } from "@/lib/api";
+import api from "@/lib/api";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
@@ -119,33 +118,12 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
   };
 
   const uploadFile = async (file: File): Promise<string | null> => {
-    if (USE_SUPABASE) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `contact-attachments/${fileName}`;
-
-      const { error } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (error) {
-        console.error("Upload error:", error);
-        return null;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
-
-      return urlData.publicUrl;
-    } else {
-      try {
-        const result = await api.upload("/upload/upload.php", file, "contact-attachments");
-        return result.url;
-      } catch (error) {
-        console.error("Upload error:", error);
-        return null;
-      }
+    try {
+      const result = await api.upload("/upload/upload.php", file, "contact-attachments");
+      return result.url;
+    } catch (error) {
+      console.error("Upload error:", error);
+      return null;
     }
   };
 
@@ -197,30 +175,16 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         subject = `شكوى${formData.city ? ` - من ${formData.city}` : ""}`;
       }
 
-      if (USE_SUPABASE) {
-        const { error } = await supabase.from("contact_messages").insert({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          subject,
-          message: formData.message.trim(),
-          type: contactType,
-          service_type: contactType === "investor" ? serviceType : null,
-          attachment_url: attachmentUrl,
-        });
-        if (error) throw error;
-      } else {
-        await api.post("/messages/create.php", {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          subject,
-          message: formData.message.trim(),
-          type: contactType,
-          service_type: contactType === "investor" ? serviceType : null,
-          attachment_url: attachmentUrl,
-        });
-      }
+      await api.post("/messages/create.php", {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        subject,
+        message: formData.message.trim(),
+        type: contactType,
+        service_type: contactType === "investor" ? serviceType : null,
+        attachment_url: attachmentUrl,
+      });
 
       toast({
         title: "تم إرسال رسالتك بنجاح!",

@@ -23,6 +23,7 @@ import StationsManager from "./pages/admin/StationsManager";
 import PartnersManager from "./pages/admin/PartnersManager";
 import MessagesInbox from "./pages/admin/MessagesInbox";
 import AdminSettings from "./pages/admin/AdminSettings";
+import SiteSettingsPage from "./pages/admin/SiteSettings";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/admin/stations" element={<ProtectedRoute><StationsManager /></ProtectedRoute>} />
           <Route path="/admin/partners" element={<ProtectedRoute><PartnersManager /></ProtectedRoute>} />
           <Route path="/admin/messages" element={<ProtectedRoute><MessagesInbox /></ProtectedRoute>} />
+          <Route path="/admin/site-settings" element={<ProtectedRoute><SiteSettingsPage /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
 
           {/* Catch-all */}

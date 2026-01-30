@@ -33,7 +33,8 @@ const navItems = [
   { name: "المحطات", href: "/admin/stations", icon: MapPin },
   { name: "الشركاء", href: "/admin/partners", icon: Users },
   { name: "الرسائل", href: "/admin/messages", icon: MessageSquare },
-  { name: "الإعدادات", href: "/admin/settings", icon: Settings, adminOnly: true },
+  { name: "إعدادات الموقع", href: "/admin/site-settings", icon: Settings },
+  { name: "إعدادات المستخدمين", href: "/admin/settings", icon: Settings, adminOnly: true },
 ];
 
 const AdminLayout = ({ children, title }: AdminLayoutProps) => {

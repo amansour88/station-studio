@@ -5,7 +5,7 @@ import { Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import Logo from "@/components/ui/Logo";
 import stationHero from "@/assets/station-hero.jpg";
 
@@ -34,28 +34,18 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      await api.post("/auth/forgot-password.php", { email });
+      
+      setIsSuccess(true);
+      toast({
+        title: "تم الإرسال",
+        description: "تحقق من بريدك الإلكتروني لإعادة تعيين كلمة المرور",
       });
-
-      if (resetError) {
-        toast({
-          variant: "destructive",
-          title: "خطأ",
-          description: resetError.message,
-        });
-      } else {
-        setIsSuccess(true);
-        toast({
-          title: "تم الإرسال",
-          description: "تحقق من بريدك الإلكتروني لإعادة تعيين كلمة المرور",
-        });
-      }
-    } catch (err) {
+    } catch (err: any) {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "حدث خطأ غير متوقع",
+        description: err.message || "حدث خطأ غير متوقع",
       });
     } finally {
       setIsLoading(false);

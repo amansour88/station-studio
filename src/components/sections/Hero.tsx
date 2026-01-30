@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import stationHero from "@/assets/station-hero.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client.safe";
-import api, { USE_SUPABASE } from "@/lib/api";
+import api from "@/lib/api";
 import type { HeroSection } from "@/types/api";
 
 const Hero = () => {
@@ -19,17 +18,7 @@ const Hero = () => {
   const { data: heroData } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
-      if (USE_SUPABASE) {
-        const { data, error } = await supabase
-          .from("hero_section")
-          .select("*")
-          .eq("is_active", true)
-          .single();
-        if (error) throw error;
-        return data as HeroSection;
-      } else {
-        return api.get<HeroSection | null>("/hero/get.php");
-      }
+      return api.get<HeroSection | null>("/hero/get.php");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - won't refetch
     gcTime: 30 * 60 * 1000,   // 30 minutes in cache

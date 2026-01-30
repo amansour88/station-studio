@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
-import { Eye, EyeOff, LogIn, Shield, User } from "lucide-react";
+import { Eye, EyeOff, LogIn, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client.safe";
 import Logo from "@/components/ui/Logo";
 import stationHero from "@/assets/station-hero.jpg";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, { message: "اسم المستخدم أو البريد الإلكتروني مطلوب" }),
+  username: z.string().min(1, { message: "اسم المستخدم مطلوب" }),
   password: z.string().min(6, { message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" }),
 });
 
@@ -21,12 +20,12 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn } = useAuth();
-  const [identifier, setIdentifier] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ identifier?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
 
   // Load remembered credentials
   useEffect(() => {
@@ -34,7 +33,7 @@ const AdminLogin = () => {
     if (remembered) {
       try {
         const data = JSON.parse(remembered);
-        setIdentifier(data.identifier || "");
+        setUsername(data.username || "");
         setRememberMe(true);
       } catch {
         // Ignore parse errors
@@ -47,11 +46,11 @@ const AdminLogin = () => {
     setErrors({});
 
     // Validate input
-    const result = loginSchema.safeParse({ identifier, password });
+    const result = loginSchema.safeParse({ username, password });
     if (!result.success) {
-      const fieldErrors: { identifier?: string; password?: string } = {};
+      const fieldErrors: { username?: string; password?: string } = {};
       result.error.errors.forEach((err) => {
-        if (err.path[0] === "identifier") fieldErrors.identifier = err.message;
+        if (err.path[0] === "username") fieldErrors.username = err.message;
         if (err.path[0] === "password") fieldErrors.password = err.message;
       });
       setErrors(fieldErrors);
@@ -61,53 +60,20 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      let email = identifier;
-
-      // Check if identifier is a username (not an email)
-      if (!identifier.includes("@")) {
-        // Look up email by username
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("user_id")
-          .eq("username", identifier)
-          .single();
-
-        if (profileError || !profile) {
-          toast({
-            variant: "destructive",
-            title: "خطأ في تسجيل الدخول",
-            description: "اسم المستخدم غير موجود",
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        // Get user email from auth
-        // Since we can't query auth.users directly, we'll try to sign in with the identifier as email first
-        // If it fails, the username lookup already failed
-        toast({
-          variant: "destructive",
-          title: "خطأ",
-          description: "يرجى استخدام البريد الإلكتروني لتسجيل الدخول",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(username, password);
 
       if (error) {
         toast({
           variant: "destructive",
           title: "خطأ في تسجيل الدخول",
           description: error.message === "Invalid login credentials" 
-            ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
-            : error.message,
+            ? "اسم المستخدم أو كلمة المرور غير صحيحة"
+            : error.message || "اسم المستخدم أو كلمة المرور غير صحيحة",
         });
       } else {
         // Save to localStorage if remember me is checked
         if (rememberMe) {
-          localStorage.setItem("aws_remember_login", JSON.stringify({ identifier }));
+          localStorage.setItem("aws_remember_login", JSON.stringify({ username }));
         } else {
           localStorage.removeItem("aws_remember_login");
         }
@@ -164,23 +130,23 @@ const AdminLogin = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                البريد الإلكتروني
+                اسم المستخدم
               </label>
               <div className="relative">
                 <Input
                   type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="admin@aws.sa"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="admin"
                   dir="ltr"
                   className={`bg-muted/50 border-border focus:border-secondary text-left pl-10 ${
-                    errors.identifier ? "border-destructive" : ""
+                    errors.username ? "border-destructive" : ""
                   }`}
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               </div>
-              {errors.identifier && (
-                <p className="text-destructive text-sm mt-1">{errors.identifier}</p>
+              {errors.username && (
+                <p className="text-destructive text-sm mt-1">{errors.username}</p>
               )}
             </div>
 
