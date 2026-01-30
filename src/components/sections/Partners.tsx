@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+import type { Partner } from "@/types/api";
 
 // Partner logo imports (fallback)
 import aramcoLogo from "@/assets/aws_broshure_v4_page13_image17.jpg";
@@ -57,13 +58,7 @@ const Partners = () => {
   const { data: dbPartners, isLoading } = useQuery({
     queryKey: ["partners"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("partners")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      
-      if (error) throw error;
+      const data = await api.get<Partner[]>("/partners/list.php");
       return data;
     },
   });

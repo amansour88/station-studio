@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { z } from "zod";
 import {
   Select,
@@ -13,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
@@ -119,24 +118,13 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
   };
 
   const uploadFile = async (file: File): Promise<string | null> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `contact-attachments/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from("uploads")
-      .upload(filePath, file);
-
-    if (error) {
+    try {
+      const result = await api.upload("/upload/upload.php", file, "contact-attachments");
+      return result.url;
+    } catch (error) {
       console.error("Upload error:", error);
       return null;
     }
-
-    const { data: urlData } = supabase.storage
-      .from("uploads")
-      .getPublicUrl(filePath);
-
-    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,7 +175,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         subject = `شكوى${formData.city ? ` - من ${formData.city}` : ""}`;
       }
 
-      const { error } = await supabase.from("contact_messages").insert({
+      await api.post("/messages/create.php", {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
@@ -197,8 +185,6 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
         service_type: contactType === "investor" ? serviceType : null,
         attachment_url: attachmentUrl,
       });
-
-      if (error) throw error;
 
       toast({
         title: "تم إرسال رسالتك بنجاح!",

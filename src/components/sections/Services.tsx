@@ -1,12 +1,13 @@
 import { Fuel, Car, ShoppingBag, Wrench, Coffee, Pill, Building, Key, Store, LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import stationPumps from "@/assets/station-pumps.jpg";
 import carService from "@/assets/car-service.jpg";
 import supermarket from "@/assets/supermarket.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
+import api from "@/lib/api";
+import type { Service } from "@/types/api";
 
 // Icon mapping for dynamic icon rendering
 const iconMap: Record<string, LucideIcon> = {
@@ -71,12 +72,6 @@ const fallbackServices = [
   },
 ];
 
-const investorServices = [
-  { label: "إدارة المحطات", type: "station_management" },
-  { label: "الامتياز التجاري", type: "franchise" },
-  { label: "تأجير المرافق", type: "facility_rental" },
-];
-
 const Services = () => {
   const { t, language } = useLanguage();
   
@@ -95,13 +90,7 @@ const Services = () => {
   const { data: services, isLoading } = useQuery({
     queryKey: ["services"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      
-      if (error) throw error;
+      const data = await api.get<Service[]>("/services/list.php");
       return data;
     },
   });

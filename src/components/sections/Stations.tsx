@@ -1,34 +1,15 @@
 import { useState, Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client.safe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, ExternalLink, Phone, Fuel, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoFlame from "@/assets/logo-flame.png";
+import api from "@/lib/api";
+import type { Region, Station } from "@/types/api";
 
 // Lazy load the map component - force fresh import
 const StationsMap = lazy(() => import("@/components/ui/StationsMap"));
-
-interface Region {
-  id: string;
-  name: string;
-  slug: string;
-  map_url: string | null;
-}
-
-interface Station {
-  id: string;
-  name: string;
-  region: string;
-  city: string | null;
-  address: string | null;
-  phone: string | null;
-  services: string[] | null;
-  products: string[] | null;
-  google_maps_url: string | null;
-  image_url: string | null;
-}
 
 const Stations = () => {
   const { t, language } = useLanguage();
@@ -39,14 +20,8 @@ const Stations = () => {
   const { data: regions, isLoading: regionsLoading } = useQuery({
     queryKey: ["regions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("regions")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      
-      if (error) throw error;
-      return data as Region[];
+      const data = await api.get<Region[]>("/regions/list.php");
+      return data;
     },
   });
 
@@ -54,14 +29,8 @@ const Stations = () => {
   const { data: stations, isLoading: stationsLoading } = useQuery({
     queryKey: ["stations"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stations")
-        .select("*")
-        .eq("is_active", true)
-        .order("region", { ascending: true });
-      
-      if (error) throw error;
-      return data as Station[];
+      const data = await api.get<Station[]>("/stations/list.php");
+      return data;
     },
   });
 
