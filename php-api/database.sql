@@ -146,6 +146,40 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Password reset tokens table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_token (token),
+    INDEX idx_user_id (user_id),
+    INDEX idx_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Site settings table
+CREATE TABLE IF NOT EXISTS site_settings (
+    id VARCHAR(36) PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_setting_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Default site settings
+INSERT INTO site_settings (id, setting_key, setting_value) VALUES
+(UUID(), 'phone', '920008436'),
+(UUID(), 'email', 'info@aws.sa'),
+(UUID(), 'address', 'المملكة العربية السعودية'),
+(UUID(), 'facebook_url', ''),
+(UUID(), 'twitter_url', ''),
+(UUID(), 'instagram_url', ''),
+(UUID(), 'linkedin_url', ''),
+(UUID(), 'whatsapp', '')
+ON DUPLICATE KEY UPDATE setting_key = setting_key;
+
 -- ===========================================
 -- Insert default data
 -- ===========================================

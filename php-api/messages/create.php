@@ -59,6 +59,27 @@ try {
         $data['attachment_url'] ?? null
     ]);
 
+    // Send email notification to admin
+    try {
+        require_once __DIR__ . '/../config/mail.php';
+        
+        $messageData = [
+            'id' => $id,
+            'name' => trim($data['name']),
+            'email' => trim($data['email']),
+            'phone' => trim($data['phone']),
+            'subject' => $data['subject'] ?? null,
+            'message' => trim($data['message']),
+            'type' => $data['type'] ?? 'general',
+            'service_type' => $data['service_type'] ?? null,
+        ];
+        
+        notifyNewMessage($messageData);
+    } catch (Exception $mailError) {
+        // Log error but don't fail the request
+        error_log("Email notification failed: " . $mailError->getMessage());
+    }
+
     echo json_encode([
         'success' => true,
         'id' => $id,
