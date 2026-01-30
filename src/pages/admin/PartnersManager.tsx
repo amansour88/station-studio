@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Partner {
@@ -32,12 +32,7 @@ const PartnersManager = () => {
 
   const fetchPartners = async () => {
     try {
-      const { data, error } = await supabase
-        .from("partners")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
+      const data = await api.get<Partner[]>("/partners/list.php", { all: "true" });
       setPartners(data || []);
     } catch (error) {
       console.error("Error fetching partners:", error);
@@ -88,21 +83,8 @@ const PartnersManager = () => {
     }
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `partner-${Date.now()}.${fileExt}`;
-      const filePath = `partners/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
-
-      setEditingPartner({ ...editingPartner, logo_url: urlData.publicUrl });
+      const result = await api.upload("/upload/upload.php", file, "partners");
+      setEditingPartner({ ...editingPartner, logo_url: result.url });
 
       toast({
         title: "تم رفع الشعار",
@@ -140,20 +122,14 @@ const PartnersManager = () => {
       };
 
       if (isCreating) {
-        const { error } = await supabase.from("partners").insert(partnerData);
-        if (error) throw error;
+        await api.post("/partners/create.php", partnerData);
 
         toast({
           title: "تمت الإضافة",
           description: "تمت إضافة الشريك بنجاح",
         });
       } else {
-        const { error } = await supabase
-          .from("partners")
-          .update(partnerData)
-          .eq("id", editingPartner.id);
-
-        if (error) throw error;
+        await api.put("/partners/update.php", { id: editingPartner.id, ...partnerData });
 
         toast({
           title: "تم الحفظ",
@@ -179,12 +155,7 @@ const PartnersManager = () => {
     if (!confirm(`هل أنت متأكد من حذف "${partner.name}"؟`)) return;
 
     try {
-      const { error } = await supabase
-        .from("partners")
-        .delete()
-        .eq("id", partner.id);
-
-      if (error) throw error;
+      await api.delete("/partners/delete.php", { id: partner.id });
 
       toast({
         title: "تم الحذف",
@@ -204,12 +175,10 @@ const PartnersManager = () => {
 
   const toggleActive = async (partner: Partner) => {
     try {
-      const { error } = await supabase
-        .from("partners")
-        .update({ is_active: !partner.is_active })
-        .eq("id", partner.id);
-
-      if (error) throw error;
+      await api.put("/partners/update.php", {
+        id: partner.id,
+        is_active: !partner.is_active,
+      });
 
       setPartners((prev) =>
         prev.map((p) =>

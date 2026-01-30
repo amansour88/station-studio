@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 
 interface HeroData {
   id: string;
@@ -30,35 +30,8 @@ const HeroEditor = () => {
 
   const fetchHeroData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("hero_section")
-        .select("*")
-        .eq("is_active", true)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      if (data) {
-        setHeroData(data);
-      } else {
-        // Create default hero if none exists
-        const { data: newHero, error: insertError } = await supabase
-          .from("hero_section")
-          .insert({
-            title: "شريكك الموثوق على الطريق",
-            subtitle: "منذ 1998",
-            description: "نفخر بتقديم خدمات متميزة في أكثر من 78 محطة في 5 مناطق بالمملكة",
-            cta_text: "تواصل معنا",
-            cta_link: "#contact",
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        setHeroData(newHero);
-      }
+      const data = await api.get<HeroData>("/hero/get.php");
+      setHeroData(data);
     } catch (error) {
       console.error("Error fetching hero data:", error);
       toast({
@@ -75,7 +48,6 @@ const HeroEditor = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         variant: "destructive",
@@ -85,7 +57,6 @@ const HeroEditor = () => {
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         variant: "destructive",
@@ -97,22 +68,10 @@ const HeroEditor = () => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `hero-${Date.now()}.${fileExt}`;
-      const filePath = `hero/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
+      const result = await api.upload("/upload/upload.php", file, "hero");
 
       setHeroData((prev) =>
-        prev ? { ...prev, background_image_url: urlData.publicUrl } : null
+        prev ? { ...prev, background_image_url: result.url } : null
       );
 
       toast({
@@ -136,19 +95,15 @@ const HeroEditor = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("hero_section")
-        .update({
-          title: heroData.title,
-          subtitle: heroData.subtitle,
-          description: heroData.description,
-          background_image_url: heroData.background_image_url,
-          cta_text: heroData.cta_text,
-          cta_link: heroData.cta_link,
-        })
-        .eq("id", heroData.id);
-
-      if (error) throw error;
+      await api.put("/hero/update.php", {
+        id: heroData.id,
+        title: heroData.title,
+        subtitle: heroData.subtitle,
+        description: heroData.description,
+        background_image_url: heroData.background_image_url,
+        cta_text: heroData.cta_text,
+        cta_link: heroData.cta_link,
+      });
 
       toast({
         title: "تم الحفظ",

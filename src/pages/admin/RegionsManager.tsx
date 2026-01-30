@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Region {
@@ -31,12 +31,7 @@ const RegionsManager = () => {
 
   const fetchRegions = async () => {
     try {
-      const { data, error } = await supabase
-        .from("regions")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
+      const data = await api.get<Region[]>("/regions/list.php", { all: "true" });
       setRegions(data || []);
     } catch (error) {
       console.error("Error fetching regions:", error);
@@ -120,20 +115,14 @@ const RegionsManager = () => {
       };
 
       if (isCreating) {
-        const { error } = await supabase.from("regions").insert(regionData);
-        if (error) throw error;
+        await api.post("/regions/create.php", regionData);
 
         toast({
           title: "تمت الإضافة",
           description: "تمت إضافة المنطقة بنجاح",
         });
       } else {
-        const { error } = await supabase
-          .from("regions")
-          .update(regionData)
-          .eq("id", editingRegion.id);
-
-        if (error) throw error;
+        await api.put("/regions/update.php", { id: editingRegion.id, ...regionData });
 
         toast({
           title: "تم الحفظ",
@@ -161,12 +150,7 @@ const RegionsManager = () => {
     if (!confirm(`هل أنت متأكد من حذف "${region.name}"؟`)) return;
 
     try {
-      const { error } = await supabase
-        .from("regions")
-        .delete()
-        .eq("id", region.id);
-
-      if (error) throw error;
+      await api.delete("/regions/delete.php", { id: region.id });
 
       toast({
         title: "تم الحذف",
@@ -186,12 +170,10 @@ const RegionsManager = () => {
 
   const toggleActive = async (region: Region) => {
     try {
-      const { error } = await supabase
-        .from("regions")
-        .update({ is_active: !region.is_active })
-        .eq("id", region.id);
-
-      if (error) throw error;
+      await api.put("/regions/update.php", {
+        id: region.id,
+        is_active: !region.is_active,
+      });
 
       setRegions((prev) =>
         prev.map((r) =>
