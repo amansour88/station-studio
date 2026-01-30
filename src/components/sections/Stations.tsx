@@ -1,7 +1,7 @@
 import { useState, Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, ExternalLink, Phone, Fuel, Car } from "lucide-react";
+import { MapPin, ExternalLink, Phone, Fuel, Car, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logoFlame from "@/assets/logo-flame.png";
@@ -330,7 +330,7 @@ const Stations = () => {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     {selectedStation.phone && (
                       <a
                         href={`tel:${selectedStation.phone}`}
@@ -341,14 +341,20 @@ const Stations = () => {
                         {selectedStation.phone}
                       </a>
                     )}
-                    {selectedStation.google_maps_url && (
+                    
+                    {/* Directions Button - works with google_maps_url OR coordinates */}
+                    {(selectedStation.google_maps_url || (selectedStation.latitude && selectedStation.longitude)) && (
                       <a
-                        href={selectedStation.google_maps_url}
+                        href={
+                          selectedStation.google_maps_url 
+                            ? selectedStation.google_maps_url 
+                            : `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.latitude},${selectedStation.longitude}`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
+                        className="flex items-center gap-1 text-sm bg-secondary text-secondary-foreground px-3 py-1.5 rounded-full hover:bg-secondary/90 transition-colors"
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <Navigation className="w-4 h-4" />
                         {t("stations.directions")}
                       </a>
                     )}
