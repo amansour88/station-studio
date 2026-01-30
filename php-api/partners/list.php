@@ -16,6 +16,12 @@ try {
     $stmt->execute();
     $partners = $stmt->fetchAll();
 
+    // Add caching headers for public requests only (5 minutes)
+    if (!$includeInactive) {
+        header("Cache-Control: public, max-age=300");
+        header("ETag: " . md5(json_encode($partners)));
+    }
+    
     echo json_encode($partners);
 
 } catch (Exception $e) {

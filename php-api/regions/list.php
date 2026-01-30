@@ -16,6 +16,12 @@ try {
     $stmt->execute();
     $regions = $stmt->fetchAll();
 
+    // Add caching headers for public requests only (5 minutes)
+    if (!$includeInactive) {
+        header("Cache-Control: public, max-age=300");
+        header("ETag: " . md5(json_encode($regions)));
+    }
+    
     echo json_encode($regions);
 
 } catch (Exception $e) {

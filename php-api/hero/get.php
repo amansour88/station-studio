@@ -9,7 +9,10 @@ try {
     $stmt->execute();
     $hero = $stmt->fetch();
 
+    // Add caching headers (5 minutes)
+    header("Cache-Control: public, max-age=300");
     if ($hero) {
+        header("ETag: " . md5(json_encode($hero)));
         echo json_encode($hero);
     } else {
         echo json_encode(null);
