@@ -4,7 +4,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useLanguage } from "@/contexts/LanguageContext";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client.safe";
+import api, { USE_SUPABASE } from "@/lib/api";
 import type { Partner } from "@/types/api";
 
 // Partner logo imports (fallback)
@@ -58,8 +59,17 @@ const Partners = () => {
   const { data: dbPartners, isLoading } = useQuery({
     queryKey: ["partners"],
     queryFn: async () => {
-      const data = await api.get<Partner[]>("/partners/list.php");
-      return data;
+      if (USE_SUPABASE) {
+        const { data, error } = await supabase
+          .from("partners")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+        if (error) throw error;
+        return data as Partner[];
+      } else {
+        return api.get<Partner[]>("/partners/list.php");
+      }
     },
   });
 

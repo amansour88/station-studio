@@ -3,9 +3,21 @@
  * 
  * This client handles all HTTP requests to the PHP API
  * with automatic session handling and error management.
+ * 
+ * NOTE: This client is used when deployed to Hostinger with PHP backend.
+ * During development on Lovable, use the Supabase client instead.
  */
 
+// Check if we're in development (Lovable) or production (Hostinger)
+const isLovablePreview = typeof window !== "undefined" && 
+  (window.location.hostname.includes("lovable") || 
+   window.location.hostname.includes("localhost"));
+
+// Use API_URL from env or default to /api for production
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+
+// Flag to determine which backend to use
+export const USE_SUPABASE = isLovablePreview;
 
 export interface ApiError {
   error: string;
