@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   userRole: UserRole;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isEditor: boolean;
@@ -46,10 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
       const response = await api.post<LoginResponse>("/auth/login.php", {
-        email,
+        username,
         password,
       });
 

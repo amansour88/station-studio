@@ -6,8 +6,7 @@ import stationPumps from "@/assets/station-pumps.jpg";
 import carService from "@/assets/car-service.jpg";
 import supermarket from "@/assets/supermarket.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { supabase } from "@/integrations/supabase/client.safe";
-import api, { USE_SUPABASE } from "@/lib/api";
+import api from "@/lib/api";
 import type { Service } from "@/types/api";
 
 // Icon mapping for dynamic icon rendering
@@ -91,17 +90,7 @@ const Services = () => {
   const { data: services, isLoading } = useQuery({
     queryKey: ["services"],
     queryFn: async () => {
-      if (USE_SUPABASE) {
-        const { data, error } = await supabase
-          .from("services")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true });
-        if (error) throw error;
-        return data as Service[];
-      } else {
-        return api.get<Service[]>("/services/list.php");
-      }
+      return api.get<Service[]>("/services/list.php");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000,   // 30 minutes in cache

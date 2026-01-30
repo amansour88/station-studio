@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import Logo from "@/components/ui/Logo";
 import stationHero from "@/assets/station-hero.jpg";
 
@@ -19,6 +19,7 @@ const passwordSchema = z.object({
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,22 +28,20 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  
+  const token = searchParams.get("token");
 
   useEffect(() => {
-    // Check if we have a valid session from the reset link
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          variant: "destructive",
-          title: "رابط غير صالح",
-          description: "يرجى طلب رابط إعادة تعيين جديد",
-        });
-        navigate("/forgot-password");
-      }
-    };
-    checkSession();
-  }, [navigate, toast]);
+    // Check if we have a valid token
+    if (!token) {
+      toast({
+        variant: "destructive",
+        title: "رابط غير صالح",
+        description: "يرجى طلب رابط إعادة تعيين جديد",
+      });
+      navigate("/forgot-password");
+    }
+  }, [token, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,31 +62,26 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      await api.post("/auth/reset-password-verify.php", {
+        token,
+        password,
+      });
 
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "خطأ",
-          description: error.message,
-        });
-      } else {
-        setIsSuccess(true);
-        toast({
-          title: "تم تحديث كلمة المرور",
-          description: "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة",
-        });
-        
-        // Redirect after 3 seconds
-        setTimeout(() => {
-          navigate("/admin/login");
-        }, 3000);
-      }
-    } catch (err) {
+      setIsSuccess(true);
+      toast({
+        title: "تم تحديث كلمة المرور",
+        description: "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة",
+      });
+      
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        navigate("/admin/login");
+      }, 3000);
+    } catch (err: any) {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "حدث خطأ غير متوقع",
+        description: err.message || "حدث خطأ غير متوقع",
       });
     } finally {
       setIsLoading(false);
