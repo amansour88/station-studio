@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useEmblaCarousel from "embla-carousel-react";
@@ -74,12 +74,13 @@ const Partners = () => {
       }))
     : fallbackPartners;
 
-  useEffect(() => {
-    console.log("[Partners] items:", partners.length, "loading:", isLoading);
-  }, [partners.length, isLoading]);
+  // Duplicate partners for seamless infinite loop
+  const duplicatedPartners = useMemo(() => {
+    // Triple the array for smooth infinite scrolling
+    return [...partners, ...partners, ...partners];
+  }, [partners]);
 
-  // Embla Carousel with autoplay
-  // Important: Page is RTL in Arabic; keep the viewport dir="ltr" and let Embla control direction
+  // Embla Carousel with infinite loop settings
   const emblaOptions = useMemo(
     () => {
       const direction: "rtl" | "ltr" = language === "ar" ? "rtl" : "ltr";
@@ -87,16 +88,17 @@ const Partners = () => {
         loop: true,
         align: "start" as const,
         direction,
-        dragFree: false,
+        dragFree: true,         // Smooth continuous scrolling
+        skipSnaps: true,        // Skip snaps for smoother animation
       };
     },
     [language],
   );
 
-  // Autoplay (useRef prevents re-init + ensures consistent behavior)
+  // Autoplay with continuous motion
   const autoplay = useRef(
     Autoplay({
-      delay: 2200,
+      delay: 1500,              // Faster for continuous feel
       stopOnInteraction: false,
       stopOnMouseEnter: true,
       playOnInit: true,
@@ -105,13 +107,28 @@ const Partners = () => {
 
   const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions, [autoplay.current]);
 
-  // Ensure autoplay is running (some browsers pause it initially)
-  useEffect(() => {
+  // Restart autoplay on loop completion
+  const onSelect = useCallback(() => {
     if (!emblaApi) return;
+    // Keep autoplay running
     autoplay.current.play();
   }, [emblaApi]);
 
-  // Render immediately (no IntersectionObserver) to avoid cards staying hidden
+  // Ensure autoplay is running
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    
+    // Start autoplay
+    autoplay.current.play();
+    
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
   return (
     <section id="partners" className="py-24 bg-background overflow-hidden">
@@ -144,11 +161,10 @@ const Partners = () => {
             ref={emblaRef}
           >
             <div className="flex gap-6">
-              {partners.map((partner, index) => (
+              {duplicatedPartners.map((partner, index) => (
                 <div
                   key={`${partner.name}-${index}`}
-                  className={`group flex-shrink-0 w-48 bg-card rounded-2xl shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col cursor-pointer hover:-translate-y-2 overflow-hidden animate-fade-in-up`}
-                  style={{ animationDelay: `${(index % 5) * 0.1}s` }}
+                  className="group flex-shrink-0 w-48 bg-card rounded-2xl shadow-aws border border-border/50 hover:border-secondary hover:shadow-aws-lg transition-all duration-500 flex flex-col cursor-pointer hover:-translate-y-2 overflow-hidden"
                 >
                   {/* Partner Logo */}
                   <div className="relative w-full aspect-[4/3] overflow-hidden bg-white flex items-center justify-center p-4">

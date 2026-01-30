@@ -11,13 +11,51 @@ import type { Region, Station } from "@/types/api";
 // Lazy load the map component - force fresh import
 const StationsMap = lazy(() => import("@/components/ui/StationsMap"));
 
+// Fallback regions data (78 محطة في 5 مناطق)
+const fallbackRegions = [
+  { id: "1", name: "القصيم", slug: "qassim", is_active: true, display_order: 1 },
+  { id: "2", name: "مكة المكرمة", slug: "makkah", is_active: true, display_order: 2 },
+  { id: "3", name: "المدينة المنورة", slug: "madinah", is_active: true, display_order: 3 },
+  { id: "4", name: "حائل", slug: "hail", is_active: true, display_order: 4 },
+  { id: "5", name: "عسير", slug: "asir", is_active: true, display_order: 5 },
+];
+
+// Fallback stations data (sample من البيانات الحقيقية)
+const fallbackStations: Station[] = [
+  // القصيم - 35 محطة
+  { id: "1", name: "AWS-1001", region: "القصيم", city: "بريدة", address: "طريق الملك عبدالعزيز", latitude: 26.3266, longitude: 43.9748, phone: "920008436", services: ["غسيل سيارات", "سوبرماركت"], products: ["بنزين 91", "بنزين 95", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "2", name: "AWS-1002", region: "القصيم", city: "عنيزة", address: "طريق الملك فهد", latitude: 26.0840, longitude: 43.9953, phone: "920008436", services: ["سوبرماركت", "مطعم"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "3", name: "AWS-1003", region: "القصيم", city: "الرس", address: "طريق الرس - بريدة", latitude: 25.8697, longitude: 43.4975, phone: "920008436", services: ["غسيل سيارات"], products: ["بنزين 91", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "4", name: "AWS-1004", region: "القصيم", city: "البكيرية", address: "الطريق الرئيسي", latitude: 26.1458, longitude: 43.6641, phone: "920008436", services: ["سوبرماركت"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "5", name: "AWS-1005", region: "القصيم", city: "المذنب", address: "طريق المذنب", latitude: 25.8679, longitude: 44.2239, phone: "920008436", services: [], products: ["بنزين 91"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  // مكة المكرمة - 20 محطة
+  { id: "6", name: "AWS-1051", region: "مكة المكرمة", city: "أبيار علي", address: "طريق المدينة", latitude: 24.1800, longitude: 39.5662, phone: "920008436", services: ["سوبرماركت", "مسجد"], products: ["بنزين 91", "بنزين 95", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "7", name: "AWS-1052", region: "مكة المكرمة", city: "الحمراء", address: "طريق الحمراء", latitude: 24.3754, longitude: 39.5154, phone: "920008436", services: ["غسيل سيارات"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "8", name: "AWS-1053", region: "مكة المكرمة", city: "اليتمة", address: "طريق اليتمة 1", latitude: 23.8100, longitude: 39.6457, phone: "920008436", services: ["مطعم", "كافيه"], products: ["بنزين 91", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "9", name: "AWS-1073", region: "مكة المكرمة", city: "جدة", address: "محطة السعودية", latitude: 21.6334, longitude: 39.1638, phone: "920008436", services: ["سوبرماركت", "صراف آلي"], products: ["بنزين 91", "بنزين 95", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "10", name: "AWS-1074", region: "مكة المكرمة", city: "جدة", address: "محطة الثريا", latitude: 21.7062, longitude: 39.2134, phone: "920008436", services: ["غسيل سيارات", "تغيير زيت"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  // المدينة المنورة - 12 محطة
+  { id: "11", name: "AWS-1056", region: "المدينة المنورة", city: "العاقول", address: "طريق العاقول", latitude: 24.5484, longitude: 39.7564, phone: "920008436", services: ["سوبرماركت"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "12", name: "AWS-1057", region: "المدينة المنورة", city: "أدنو", address: "طريق أدنو", latitude: 24.4723, longitude: 39.4581, phone: "920008436", services: ["مطعم"], products: ["بنزين 91", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "13", name: "AWS-1059", region: "المدينة المنورة", city: "التلال", address: "طريق التلال", latitude: 24.3560, longitude: 39.6010, phone: "920008436", services: [], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "14", name: "AWS-1063", region: "المدينة المنورة", city: "الرحيلي", address: "طريق الرحيلي", latitude: 24.1211, longitude: 39.5723, phone: "920008436", services: ["غسيل سيارات"], products: ["بنزين 91"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  // حائل - 6 محطات
+  { id: "15", name: "AWS-1070", region: "حائل", city: "حائل", address: "بترو عقده", latitude: 27.5181, longitude: 41.6580, phone: "920008436", services: ["سوبرماركت", "مطعم"], products: ["بنزين 91", "بنزين 95", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "16", name: "AWS-1079", region: "حائل", city: "تيماء", address: "تيماء 1", latitude: 27.6266, longitude: 38.5276, phone: "920008436", services: ["مسجد"], products: ["بنزين 91", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "17", name: "AWS-1080", region: "حائل", city: "تيماء", address: "تيماء 2", latitude: 27.6110, longitude: 38.5574, phone: "920008436", services: [], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  // عسير - 5 محطات
+  { id: "18", name: "AWS-1075", region: "عسير", city: "خميس مشيط", address: "محطة الرياض", latitude: 21.8611, longitude: 39.1917, phone: "920008436", services: ["سوبرماركت", "كافيه"], products: ["بنزين 91", "بنزين 95", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "19", name: "AWS-1076", region: "عسير", city: "أبها", address: "طريق أبها", latitude: 18.2164, longitude: 42.5053, phone: "920008436", services: ["غسيل سيارات"], products: ["بنزين 91", "بنزين 95"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+  { id: "20", name: "AWS-1077", region: "عسير", city: "خميس مشيط", address: "طريق الملك فهد", latitude: 18.3093, longitude: 42.7230, phone: "920008436", services: ["مطعم", "صراف آلي"], products: ["بنزين 91", "ديزل"], is_active: true, created_at: "", updated_at: "", google_maps_url: null, image_url: null },
+];
+
 const Stations = () => {
   const { t, language } = useLanguage();
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
   // Fetch regions from database
-  const { data: regions, isLoading: regionsLoading } = useQuery({
+  const { data: dbRegions, isLoading: regionsLoading } = useQuery({
     queryKey: ["regions"],
     queryFn: async () => {
       return api.get<Region[]>("/regions/list.php");
@@ -27,7 +65,7 @@ const Stations = () => {
   });
 
   // Fetch stations from database
-  const { data: stations, isLoading: stationsLoading } = useQuery({
+  const { data: dbStations, isLoading: stationsLoading } = useQuery({
     queryKey: ["stations"],
     queryFn: async () => {
       return api.get<Station[]>("/stations/list.php");
@@ -35,6 +73,10 @@ const Stations = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000,   // 30 minutes in cache
   });
+
+  // Use database data or fallback
+  const regions = dbRegions && dbRegions.length > 0 ? dbRegions : fallbackRegions;
+  const stations = dbStations && dbStations.length > 0 ? dbStations : fallbackStations;
 
   // Filter stations by region
   const filteredStations = selectedRegion === "all"
@@ -96,7 +138,7 @@ const Stations = () => {
           {/* Regions Filter */}
           <div className="p-4 md:p-6 border-b border-border/50 bg-muted/30">
             <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-              {regionsLoading ? (
+              {regionsLoading && (!regions || regions.length === 0) ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <Skeleton key={index} className="h-10 w-24 rounded-full" />
                 ))
@@ -156,7 +198,7 @@ const Stations = () => {
                 </h3>
               </div>
               
-              {stationsLoading ? (
+              {stationsLoading && (!stations || stations.length === 0) ? (
                 <div className="p-4 space-y-3">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <Skeleton key={index} className="h-24 rounded-xl" />
