@@ -6,9 +6,9 @@
 
 // Allow from your domain - update this!
 $allowed_origins = [
-    'https://YOUR_DOMAIN.com',
-    'https://www.YOUR_DOMAIN.com',
-    'http://localhost:5173', // للتطوير المحلي
+    'https://aws.sa',
+    'https://www.aws.sa',
+    'http://localhost:5173',
     'http://localhost:3000',
 ];
 
@@ -17,8 +17,7 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowed_origins)) {
     header("Access-Control-Allow-Origin: $origin");
 } else {
-    // For production, you might want to be stricter
-    header("Access-Control-Allow-Origin: https://YOUR_DOMAIN.com");
+    header("Access-Control-Allow-Origin: https://aws.sa");
 }
 
 header("Access-Control-Allow-Credentials: true");
