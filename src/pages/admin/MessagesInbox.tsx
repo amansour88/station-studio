@@ -8,6 +8,8 @@ import {
   Phone,
   Calendar,
   RefreshCw,
+  FileText,
+  Download,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,9 @@ interface Message {
   phone: string | null;
   subject: string | null;
   message: string;
+  type: string | null;
+  service_type: string | null;
+  attachment_url: string | null;
   is_read: boolean;
   is_archived: boolean;
   created_at: string;
@@ -322,6 +327,48 @@ const MessagesInbox = () => {
                 <p className="text-foreground whitespace-pre-wrap leading-relaxed">
                   {selectedMessage.message}
                 </p>
+
+                {/* Attachment */}
+                {selectedMessage.attachment_url && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-xl border border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground">ملف مرفق</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {selectedMessage.attachment_url.split('/').pop()}
+                        </p>
+                      </div>
+                      <a
+                        href={selectedMessage.attachment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>تحميل</span>
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Message Type Badge */}
+                {selectedMessage.type && selectedMessage.type !== 'general' && (
+                  <div className="mt-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-secondary/20 text-secondary">
+                      {selectedMessage.type === 'franchise' ? 'طلب امتياز' : 
+                       selectedMessage.type === 'service' ? 'استفسار خدمة' : 
+                       selectedMessage.type}
+                    </span>
+                    {selectedMessage.service_type && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-muted text-muted-foreground mr-2">
+                        {selectedMessage.service_type}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Quick Reply */}

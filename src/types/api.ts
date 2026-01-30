@@ -144,6 +144,9 @@ export interface SiteSettings {
   phone: string;
   email: string;
   address: string;
+  map_latitude?: string;
+  map_longitude?: string;
+  map_zoom?: string;
 }
 
 // Generic responses

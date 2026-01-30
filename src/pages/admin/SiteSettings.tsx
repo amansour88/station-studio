@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Facebook, Twitter, Instagram, Linkedin, Phone, Mail, MapPin, Save, Globe } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Phone, Mail, MapPin, Save, Globe, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,9 @@ const SiteSettingsPage = () => {
     phone: "",
     email: "",
     address: "",
+    map_latitude: "",
+    map_longitude: "",
+    map_zoom: "6",
   });
 
   const { data: settings, isLoading } = useQuery({
@@ -38,6 +41,9 @@ const SiteSettingsPage = () => {
         phone: settings.phone || "",
         email: settings.email || "",
         address: settings.address || "",
+        map_latitude: settings.map_latitude || "",
+        map_longitude: settings.map_longitude || "",
+        map_zoom: settings.map_zoom || "6",
       });
     }
   }, [settings]);
@@ -142,6 +148,49 @@ const SiteSettingsPage = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Map Location Section */}
+        <div className="bg-card rounded-2xl p-6 border border-border/50">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Navigation className="w-5 h-5 text-primary" />
+            موقع المقر الرئيسي على الخريطة
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">خط العرض (Latitude)</label>
+              <Input
+                placeholder="26.3266"
+                value={formData.map_latitude || ""}
+                onChange={(e) => setFormData({ ...formData, map_latitude: e.target.value })}
+                dir="ltr"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">خط الطول (Longitude)</label>
+              <Input
+                placeholder="43.9748"
+                value={formData.map_longitude || ""}
+                onChange={(e) => setFormData({ ...formData, map_longitude: e.target.value })}
+                dir="ltr"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">مستوى التقريب (Zoom)</label>
+              <Input
+                placeholder="6"
+                type="number"
+                min="1"
+                max="18"
+                value={formData.map_zoom || ""}
+                onChange={(e) => setFormData({ ...formData, map_zoom: e.target.value })}
+                dir="ltr"
+              />
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-3">
+            💡 يمكنك الحصول على الإحداثيات من Google Maps بالضغط بزر الماوس الأيمن على الموقع واختيار الإحداثيات
+          </p>
         </div>
 
         <Button type="submit" disabled={mutation.isPending} className="w-full py-6">
