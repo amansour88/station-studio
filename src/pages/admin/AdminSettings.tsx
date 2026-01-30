@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface User {
@@ -61,17 +61,8 @@ const AdminSettings = () => {
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No session");
-
-      const response = await supabase.functions.invoke("manage-users", {
-        body: { action: "list" },
-      });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
-
-      setUsers(response.data.users || []);
+      const data = await api.get<{ users: User[] }>("/users/list.php");
+      setUsers(data.users || []);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       toast({
@@ -107,19 +98,13 @@ const AdminSettings = () => {
 
     setIsCreating(true);
     try {
-      const response = await supabase.functions.invoke("manage-users", {
-        body: {
-          action: "create",
-          email: newUserEmail,
-          password: newUserPassword,
-          username: newUserUsername,
-          full_name: newUserFullName,
-          role: newUserRole,
-        },
+      await api.post("/users/create.php", {
+        email: newUserEmail,
+        password: newUserPassword,
+        username: newUserUsername,
+        full_name: newUserFullName,
+        role: newUserRole,
       });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
 
       toast({
         title: "تم الإنشاء",
@@ -150,16 +135,10 @@ const AdminSettings = () => {
 
     setIsUpdating(true);
     try {
-      const response = await supabase.functions.invoke("manage-users", {
-        body: {
-          action: "update",
-          user_id: editingUser.id,
-          role: editRole,
-        },
+      await api.put("/users/update.php", {
+        user_id: editingUser.id,
+        role: editRole,
       });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
 
       toast({
         title: "تم التحديث",
@@ -191,16 +170,10 @@ const AdminSettings = () => {
     }
 
     try {
-      const response = await supabase.functions.invoke("manage-users", {
-        body: {
-          action: "toggle_ban",
-          user_id: targetUser.id,
-          ban: !targetUser.is_banned,
-        },
+      await api.post("/users/toggle-ban.php", {
+        user_id: targetUser.id,
+        ban: !targetUser.is_banned,
       });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
 
       toast({
         title: targetUser.is_banned ? "تم إلغاء الحظر" : "تم الحظر",
@@ -233,15 +206,7 @@ const AdminSettings = () => {
     }
 
     try {
-      const response = await supabase.functions.invoke("manage-users", {
-        body: {
-          action: "delete",
-          user_id: targetUser.id,
-        },
-      });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
+      await api.delete("/users/delete.php", { user_id: targetUser.id });
 
       toast({
         title: "تم الحذف",
@@ -274,16 +239,10 @@ const AdminSettings = () => {
 
     setIsResetting(true);
     try {
-      const response = await supabase.functions.invoke("manage-users", {
-        body: {
-          action: "reset_password",
-          user_id: resetPasswordUser.id,
-          new_password: resetPassword,
-        },
+      await api.post("/users/reset-password.php", {
+        user_id: resetPasswordUser.id,
+        new_password: resetPassword,
       });
-
-      if (response.error) throw response.error;
-      if (response.data.error) throw new Error(response.data.error);
 
       toast({
         title: "تم التغيير",
@@ -336,11 +295,9 @@ const AdminSettings = () => {
 
     setChangingPassword(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      await api.post("/auth/change-password.php", {
+        new_password: newPassword,
       });
-
-      if (error) throw error;
 
       toast({
         title: "تم التغيير",
@@ -498,82 +455,86 @@ const AdminSettings = () => {
                   className={cn(
                     "flex items-center justify-between p-4 rounded-xl border border-border/50",
                     u.is_banned && "opacity-50 bg-destructive/5",
-                    u.id === user?.id && "bg-primary/5 border-primary/30"
+                    u.id === user?.id && "bg-primary/5 border-primary/20"
                   )}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center font-bold text-white",
-                      u.role === "admin" ? "bg-primary" : "bg-muted-foreground"
+                      "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold",
+                      u.role === "admin" ? "bg-primary" : "bg-secondary"
                     )}>
-                      {u.username?.charAt(0).toUpperCase() || u.email?.charAt(0).toUpperCase()}
+                      {(u.username || u.email).charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          {u.username || u.email}
-                        </span>
+                        <h4 className="font-medium text-foreground">
+                          {u.full_name || u.username || u.email}
+                        </h4>
                         {u.id === user?.id && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">أنت</span>
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            أنت
+                          </span>
                         )}
                         {u.is_banned && (
-                          <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">محظور</span>
+                          <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">
+                            محظور
+                          </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span dir="ltr">{u.email}</span>
-                        <span>•</span>
-                        <span className={cn(
-                          "text-xs px-2 py-0.5 rounded-full",
-                          u.role === "admin" ? "bg-primary/10 text-primary" : "bg-secondary/10"
-                        )}>
-                          {u.role === "admin" ? "مسؤول" : "محرر"}
-                        </span>
-                      </div>
+                      <p className="text-sm text-muted-foreground" dir="ltr">
+                        {u.email}
+                      </p>
                     </div>
                   </div>
-
-                  {u.id !== user?.id && (
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingUser(u);
-                          setEditRole(u.role);
-                        }}
-                        title="تعديل الصلاحية"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setResetPasswordUser(u)}
-                        title="إعادة تعيين كلمة المرور"
-                      >
-                        <Key className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleBan(u)}
-                        title={u.is_banned ? "إلغاء الحظر" : "حظر"}
-                        className={u.is_banned ? "text-green-600" : "text-orange-600"}
-                      >
-                        {u.is_banned ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteUser(u)}
-                        className="text-destructive hover:text-destructive"
-                        title="حذف"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
+                  
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-xs px-2 py-1 rounded-full",
+                      u.role === "admin" 
+                        ? "bg-primary/10 text-primary" 
+                        : "bg-secondary/10 text-secondary-foreground"
+                    )}>
+                      {u.role === "admin" ? "مسؤول" : "محرر"}
+                    </span>
+                    
+                    {u.id !== user?.id && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setEditingUser(u);
+                            setEditRole(u.role);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setResetPasswordUser(u)}
+                        >
+                          <Key className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleBan(u)}
+                          className={u.is_banned ? "text-green-500 hover:text-green-600" : "text-orange-500 hover:text-orange-600"}
+                        >
+                          {u.is_banned ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteUser(u)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -584,30 +545,25 @@ const AdminSettings = () => {
         {editingUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-card rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-bold text-foreground mb-4">
-                تعديل صلاحية {editingUser.username || editingUser.email}
-              </h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-foreground mb-2">الصلاحية</label>
-                <select
-                  value={editRole}
-                  onChange={(e) => setEditRole(e.target.value as "admin" | "editor")}
-                  className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg"
-                >
-                  <option value="editor">محرر</option>
-                  <option value="admin">مسؤول</option>
-                </select>
-              </div>
+              <h3 className="text-lg font-bold text-foreground mb-4">تعديل صلاحية المستخدم</h3>
+              <p className="text-muted-foreground mb-4">{editingUser.email}</p>
+              <select
+                value={editRole}
+                onChange={(e) => setEditRole(e.target.value as "admin" | "editor")}
+                className="w-full px-3 py-2 bg-muted/50 border border-border rounded-lg mb-4"
+              >
+                <option value="editor">محرر</option>
+                <option value="admin">مسؤول</option>
+              </select>
               <div className="flex gap-2">
-                <Button onClick={handleUpdateRole} disabled={isUpdating}>
+                <Button onClick={handleUpdateRole} disabled={isUpdating} className="flex-1">
                   {isUpdating ? (
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <Save className="w-4 h-4 ml-2" />
+                    "حفظ"
                   )}
-                  حفظ
                 </Button>
-                <Button variant="outline" onClick={() => setEditingUser(null)}>
+                <Button variant="outline" onClick={() => setEditingUser(null)} className="flex-1">
                   إلغاء
                 </Button>
               </div>
@@ -619,30 +575,25 @@ const AdminSettings = () => {
         {resetPasswordUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-card rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-bold text-foreground mb-4">
-                إعادة تعيين كلمة مرور {resetPasswordUser.username || resetPasswordUser.email}
-              </h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">تغيير كلمة المرور</h3>
+              <p className="text-muted-foreground mb-4">{resetPasswordUser.email}</p>
               <form onSubmit={handleResetPassword}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-foreground mb-2">كلمة المرور الجديدة</label>
-                  <Input
-                    type="password"
-                    value={resetPassword}
-                    onChange={(e) => setResetPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-muted/50"
-                  />
-                </div>
+                <Input
+                  type="password"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  placeholder="كلمة المرور الجديدة"
+                  className="mb-4"
+                />
                 <div className="flex gap-2">
-                  <Button type="submit" disabled={isResetting}>
+                  <Button type="submit" disabled={isResetting} className="flex-1">
                     {isResetting ? (
                       <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Key className="w-4 h-4 ml-2" />
+                      "تغيير"
                     )}
-                    تغيير كلمة المرور
                   </Button>
-                  <Button variant="outline" type="button" onClick={() => setResetPasswordUser(null)}>
+                  <Button type="button" variant="outline" onClick={() => setResetPasswordUser(null)} className="flex-1">
                     إلغاء
                   </Button>
                 </div>
@@ -659,60 +610,44 @@ const AdminSettings = () => {
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">تغيير كلمة المرور</h3>
-              <p className="text-sm text-muted-foreground">
-                تغيير كلمة المرور الخاصة بحسابك
-              </p>
+              <p className="text-sm text-muted-foreground">تغيير كلمة مرور حسابك</p>
             </div>
           </div>
 
           <form onSubmit={handleChangeOwnPassword} className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  كلمة المرور الجديدة
-                </label>
-                <Input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="bg-muted/50"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  تأكيد كلمة المرور
-                </label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="bg-muted/50"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                كلمة المرور الجديدة
+              </label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                className="bg-muted/50"
+              />
             </div>
-
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                تأكيد كلمة المرور
+              </label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="bg-muted/50"
+              />
+            </div>
             <Button type="submit" disabled={changingPassword}>
               {changingPassword ? (
                 <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
                 <Save className="w-4 h-4 ml-2" />
               )}
-              تغيير كلمة المرور
+              حفظ التغييرات
             </Button>
           </form>
-        </div>
-
-        {/* Account Info */}
-        <div className="bg-muted/50 rounded-2xl p-6">
-          <h4 className="font-medium text-foreground mb-2">معلومات الحساب</h4>
-          <p className="text-sm text-muted-foreground">
-            البريد الإلكتروني: {user?.email}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            الصلاحية: مسؤول
-          </p>
         </div>
       </div>
     </AdminLayout>

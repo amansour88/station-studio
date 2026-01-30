@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 
 interface AboutData {
   id: string;
@@ -28,48 +28,17 @@ const AboutEditor = () => {
 
   const fetchAboutData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("about_section")
-        .select("*")
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      if (data) {
-        // Parse stats from JSON with proper type casting
-        const parsedStats = Array.isArray(data.stats) 
-          ? (data.stats as { label: string; value: string }[])
-          : [];
-        setAboutData({
-          ...data,
-          stats: parsedStats,
-        });
-      } else {
-        // Create default about if none exists
-        const defaultStats = [
-          { label: "سنوات الخبرة", value: "25+" },
-          { label: "محطة وقود", value: "78" },
-          { label: "منطقة", value: "5" },
-          { label: "موظف", value: "1000+" },
-        ];
-        const { data: newAbout, error: insertError } = await supabase
-          .from("about_section")
-          .insert({
-            title: "من نحن",
-            content: "شركة اوس للخدمات البترولية، رائدة في مجال الخدمات البترولية منذ 1998. نفخر بتقديم خدمات متميزة في أكثر من 78 محطة في 5 مناطق بالمملكة العربية السعودية.",
-            stats: defaultStats,
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        setAboutData({
-          ...newAbout,
-          stats: defaultStats,
-        });
-      }
+      const data = await api.get<AboutData>("/about/get.php");
+      
+      // Parse stats from JSON if needed
+      const parsedStats = Array.isArray(data.stats) 
+        ? data.stats
+        : [];
+      
+      setAboutData({
+        ...data,
+        stats: parsedStats,
+      });
     } catch (error) {
       console.error("Error fetching about data:", error);
       toast({
@@ -106,22 +75,10 @@ const AboutEditor = () => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `about-${Date.now()}.${fileExt}`;
-      const filePath = `about/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
+      const result = await api.upload("/upload/upload.php", file, "about");
 
       setAboutData((prev) =>
-        prev ? { ...prev, image_url: urlData.publicUrl } : null
+        prev ? { ...prev, image_url: result.url } : null
       );
 
       toast({
@@ -174,17 +131,13 @@ const AboutEditor = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("about_section")
-        .update({
-          title: aboutData.title,
-          content: aboutData.content,
-          image_url: aboutData.image_url,
-          stats: aboutData.stats,
-        })
-        .eq("id", aboutData.id);
-
-      if (error) throw error;
+      await api.put("/about/update.php", {
+        id: aboutData.id,
+        title: aboutData.title,
+        content: aboutData.content,
+        image_url: aboutData.image_url,
+        stats: aboutData.stats,
+      });
 
       toast({
         title: "تم الحفظ",

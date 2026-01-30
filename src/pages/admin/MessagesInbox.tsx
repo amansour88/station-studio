@@ -13,7 +13,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -43,22 +43,7 @@ const MessagesInbox = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (filter === "unread") {
-        query = query.eq("is_read", false).eq("is_archived", false);
-      } else if (filter === "archived") {
-        query = query.eq("is_archived", true);
-      } else {
-        query = query.eq("is_archived", false);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const data = await api.get<Message[]>("/messages/list.php", { filter });
       setMessages(data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -76,12 +61,7 @@ const MessagesInbox = () => {
     if (message.is_read) return;
 
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ is_read: true })
-        .eq("id", message.id);
-
-      if (error) throw error;
+      await api.put("/messages/update.php", { id: message.id, is_read: true });
 
       setMessages((prev) =>
         prev.map((m) => (m.id === message.id ? { ...m, is_read: true } : m))
@@ -96,12 +76,10 @@ const MessagesInbox = () => {
 
   const toggleArchive = async (message: Message) => {
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ is_archived: !message.is_archived })
-        .eq("id", message.id);
-
-      if (error) throw error;
+      await api.put("/messages/update.php", {
+        id: message.id,
+        is_archived: !message.is_archived,
+      });
 
       toast({
         title: message.is_archived ? "تم إلغاء الأرشفة" : "تم الأرشفة",
@@ -128,12 +106,7 @@ const MessagesInbox = () => {
     if (!confirm("هل أنت متأكد من حذف هذه الرسالة؟")) return;
 
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .delete()
-        .eq("id", message.id);
-
-      if (error) throw error;
+      await api.delete("/messages/delete.php", { id: message.id });
 
       toast({
         title: "تم الحذف",

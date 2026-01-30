@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Region {
@@ -48,12 +48,7 @@ const StationsManager = () => {
 
   const fetchRegions = async () => {
     try {
-      const { data, error } = await supabase
-        .from("regions")
-        .select("id, name, slug")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
+      const data = await api.get<Region[]>("/regions/list.php");
       setRegions(data || []);
     } catch (error) {
       console.error("Error fetching regions:", error);
@@ -62,12 +57,7 @@ const StationsManager = () => {
 
   const fetchStations = async () => {
     try {
-      const { data, error } = await supabase
-        .from("stations")
-        .select("*")
-        .order("region", { ascending: true });
-
-      if (error) throw error;
+      const data = await api.get<Station[]>("/stations/list.php", { all: "true" });
       setStations(data || []);
     } catch (error) {
       console.error("Error fetching stations:", error);
@@ -124,21 +114,8 @@ const StationsManager = () => {
     }
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `station-${Date.now()}.${fileExt}`;
-      const filePath = `stations/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
-
-      setEditingStation({ ...editingStation, image_url: urlData.publicUrl });
+      const result = await api.upload("/upload/upload.php", file, "stations");
+      setEditingStation({ ...editingStation, image_url: result.url });
 
       toast({
         title: "تم رفع الصورة",
@@ -182,20 +159,14 @@ const StationsManager = () => {
       };
 
       if (isCreating) {
-        const { error } = await supabase.from("stations").insert(stationData);
-        if (error) throw error;
+        await api.post("/stations/create.php", stationData);
 
         toast({
           title: "تمت الإضافة",
           description: "تمت إضافة المحطة بنجاح",
         });
       } else {
-        const { error } = await supabase
-          .from("stations")
-          .update(stationData)
-          .eq("id", editingStation.id);
-
-        if (error) throw error;
+        await api.put("/stations/update.php", { id: editingStation.id, ...stationData });
 
         toast({
           title: "تم الحفظ",
@@ -221,12 +192,7 @@ const StationsManager = () => {
     if (!confirm(`هل أنت متأكد من حذف "${station.name}"؟`)) return;
 
     try {
-      const { error } = await supabase
-        .from("stations")
-        .delete()
-        .eq("id", station.id);
-
-      if (error) throw error;
+      await api.delete("/stations/delete.php", { id: station.id });
 
       toast({
         title: "تم الحذف",
@@ -246,12 +212,10 @@ const StationsManager = () => {
 
   const toggleActive = async (station: Station) => {
     try {
-      const { error } = await supabase
-        .from("stations")
-        .update({ is_active: !station.is_active })
-        .eq("id", station.id);
-
-      if (error) throw error;
+      await api.put("/stations/update.php", {
+        id: station.id,
+        is_active: !station.is_active,
+      });
 
       setStations((prev) =>
         prev.map((s) =>
@@ -531,10 +495,10 @@ const StationsManager = () => {
           </div>
         )}
 
-        {/* Stations Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Stations List */}
+        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
           {filteredStations.length === 0 ? (
-            <div className="sm:col-span-2 lg:col-span-3 text-center p-12 bg-card rounded-2xl border border-border/50 text-muted-foreground">
+            <div className="text-center p-12 text-muted-foreground">
               <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>لا توجد محطات</p>
               <Button onClick={handleCreate} variant="link" className="mt-2">
@@ -542,69 +506,69 @@ const StationsManager = () => {
               </Button>
             </div>
           ) : (
-            filteredStations.map((station) => (
-              <div
-                key={station.id}
-                className={cn(
-                  "bg-card rounded-xl border border-border/50 overflow-hidden hover:shadow-aws transition-shadow",
-                  !station.is_active && "opacity-50"
-                )}
-              >
-                {station.image_url && (
-                  <img
-                    src={station.image_url}
-                    alt={station.name}
-                    className="w-full h-32 object-cover"
-                  />
-                )}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-bold text-foreground">{station.name}</h4>
-                      <p className="text-sm text-muted-foreground">{station.region}</p>
-                      {station.city && (
-                        <p className="text-xs text-muted-foreground">{station.city}</p>
-                      )}
-                    </div>
-                    <Switch
-                      checked={station.is_active}
-                      onCheckedChange={() => toggleActive(station)}
-                    />
-                  </div>
-                  
-                  {station.google_maps_url && (
-                    <a
-                      href={station.google_maps_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:text-secondary mb-2"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      عرض على الخريطة
-                    </a>
+            <div className="divide-y divide-border">
+              {filteredStations.map((station) => (
+                <div
+                  key={station.id}
+                  className={cn(
+                    "flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors",
+                    !station.is_active && "opacity-50"
                   )}
-                  
-                  <div className="flex gap-1 mt-3">
+                >
+                  {station.image_url ? (
+                    <img
+                      src={station.image_url}
+                      alt={station.name}
+                      className="w-14 h-14 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <MapPin className="w-6 h-6 text-primary" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-foreground">{station.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {station.region} {station.city && `- ${station.city}`}
+                    </p>
+                  </div>
+
+                  <Switch
+                    checked={station.is_active}
+                    onCheckedChange={() => toggleActive(station)}
+                  />
+
+                  <div className="flex gap-1">
+                    {station.google_maps_url && (
+                      <a
+                        href={station.google_maps_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-muted-foreground hover:text-primary"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleEdit(station)}
                     >
-                      <Edit className="w-3 h-3 ml-1" />
-                      تعديل
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleDelete(station)}
                       className="text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>

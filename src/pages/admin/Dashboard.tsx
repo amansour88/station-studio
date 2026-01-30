@@ -11,7 +11,7 @@ import {
   Eye,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 
 interface Stats {
   services: number;
@@ -34,22 +34,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [servicesRes, stationsRes, partnersRes, messagesRes, unreadRes] =
-          await Promise.all([
-            supabase.from("services").select("id", { count: "exact", head: true }),
-            supabase.from("stations").select("id", { count: "exact", head: true }),
-            supabase.from("partners").select("id", { count: "exact", head: true }),
-            supabase.from("contact_messages").select("id", { count: "exact", head: true }),
-            supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("is_read", false),
-          ]);
-
-        setStats({
-          services: servicesRes.count || 0,
-          stations: stationsRes.count || 0,
-          partners: partnersRes.count || 0,
-          messages: messagesRes.count || 0,
-          unreadMessages: unreadRes.count || 0,
-        });
+        const data = await api.get<Stats>("/stats/dashboard.php");
+        setStats(data);
       } catch (error) {
         console.error("Error fetching stats:", error);
       } finally {

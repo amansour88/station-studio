@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client.safe";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface Service {
@@ -33,12 +33,7 @@ const ServicesManager = () => {
 
   const fetchServices = async () => {
     try {
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
+      const data = await api.get<Service[]>("/services/list.php", { all: "true" });
       setServices(data || []);
     } catch (error) {
       console.error("Error fetching services:", error);
@@ -89,21 +84,8 @@ const ServicesManager = () => {
     }
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `service-${Date.now()}.${fileExt}`;
-      const filePath = `services/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
-
-      setEditingService({ ...editingService, image_url: urlData.publicUrl });
+      const result = await api.upload("/upload/upload.php", file, "services");
+      setEditingService({ ...editingService, image_url: result.url });
 
       toast({
         title: "تم رفع الصورة",
@@ -132,7 +114,7 @@ const ServicesManager = () => {
     setSaving(true);
     try {
       if (isCreating) {
-        const { error } = await supabase.from("services").insert({
+        await api.post("/services/create.php", {
           title: editingService.title,
           description: editingService.description,
           icon: editingService.icon,
@@ -141,26 +123,20 @@ const ServicesManager = () => {
           is_active: editingService.is_active,
         });
 
-        if (error) throw error;
-
         toast({
           title: "تمت الإضافة",
           description: "تمت إضافة الخدمة بنجاح",
         });
       } else {
-        const { error } = await supabase
-          .from("services")
-          .update({
-            title: editingService.title,
-            description: editingService.description,
-            icon: editingService.icon,
-            image_url: editingService.image_url,
-            display_order: editingService.display_order,
-            is_active: editingService.is_active,
-          })
-          .eq("id", editingService.id);
-
-        if (error) throw error;
+        await api.put("/services/update.php", {
+          id: editingService.id,
+          title: editingService.title,
+          description: editingService.description,
+          icon: editingService.icon,
+          image_url: editingService.image_url,
+          display_order: editingService.display_order,
+          is_active: editingService.is_active,
+        });
 
         toast({
           title: "تم الحفظ",
@@ -186,12 +162,7 @@ const ServicesManager = () => {
     if (!confirm(`هل أنت متأكد من حذف "${service.title}"؟`)) return;
 
     try {
-      const { error } = await supabase
-        .from("services")
-        .delete()
-        .eq("id", service.id);
-
-      if (error) throw error;
+      await api.delete("/services/delete.php", { id: service.id });
 
       toast({
         title: "تم الحذف",
@@ -211,12 +182,10 @@ const ServicesManager = () => {
 
   const toggleActive = async (service: Service) => {
     try {
-      const { error } = await supabase
-        .from("services")
-        .update({ is_active: !service.is_active })
-        .eq("id", service.id);
-
-      if (error) throw error;
+      await api.put("/services/update.php", {
+        id: service.id,
+        is_active: !service.is_active,
+      });
 
       setServices((prev) =>
         prev.map((s) =>
