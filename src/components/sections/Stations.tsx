@@ -348,7 +348,7 @@ const Stations = () => {
                         href={
                           selectedStation.google_maps_url 
                             ? selectedStation.google_maps_url 
-                            : `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.latitude},${selectedStation.longitude}`
+                            : `https://maps.google.com/maps?daddr=${selectedStation.latitude},${selectedStation.longitude}`
                         }
                         target="_blank"
                         rel="noopener noreferrer"
