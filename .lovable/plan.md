@@ -1,519 +1,164 @@
 
-# خطة تحويل المشروع من Supabase إلى MySQL مع PHP API
+# خطة تحسين سرعة تحميل الصفحة الرئيسية
 
-## نظرة عامة
-
-سنقوم بتحويل المشروع من استخدام Supabase (PostgreSQL) إلى استضافة Hostinger مع MySQL وPHP API. هذا يتطلب:
-
-1. إنشاء ملفات PHP API كاملة
-2. تعديل ملفات React للاتصال بـ PHP API بدلاً من Supabase
-3. حذف ملفات Supabase غير المستخدمة
+## المشكلة
+عند فتح الصفحة الرئيسية، يتم تحميل 6+ طلبات API بالتوازي مما يسبب بطء في ظهور المحتوى خاصة قسم Hero.
 
 ---
 
-## الجزء الأول: ملفات PHP API (للرفع على Hostinger)
+## الحل 1: إضافة Persistent Database Connection
 
-### هيكل المجلدات
-```text
-public_html/
-├── api/
-│   ├── config/
-│   │   └── database.php
-│   ├── middleware/
-│   │   ├── auth.php
-│   │   └── cors.php
-│   ├── auth/
-│   │   ├── login.php
-│   │   ├── logout.php
-│   │   ├── check-session.php
-│   │   └── change-password.php
-│   ├── users/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   ├── delete.php
-│   │   ├── toggle-ban.php
-│   │   └── reset-password.php
-│   ├── hero/
-│   │   ├── get.php
-│   │   └── update.php
-│   ├── about/
-│   │   ├── get.php
-│   │   └── update.php
-│   ├── services/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   └── delete.php
-│   ├── regions/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   └── delete.php
-│   ├── stations/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   └── delete.php
-│   ├── partners/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   └── delete.php
-│   ├── messages/
-│   │   ├── list.php
-│   │   ├── create.php
-│   │   ├── update.php
-│   │   └── delete.php
-│   └── upload/
-│       └── upload.php
-├── uploads/
-│   ├── hero/
-│   ├── services/
-│   ├── stations/
-│   ├── partners/
-│   └── contact-attachments/
-└── [React Build Files]
-```
+### الملف: `php-api/config/database.php`
+تحسين الاتصال بقاعدة البيانات باستخدام اتصال دائم (Persistent Connection).
 
----
-
-## الجزء الثاني: ملفات React للتعديل
-
-### ملفات جديدة:
-| الملف | الوصف |
-|-------|-------|
-| `src/lib/api.ts` | خدمة API Client للاتصال بـ PHP |
-| `src/types/api.ts` | أنواع TypeScript للـ API |
-
-### ملفات للتعديل (20 ملف):
-| الملف | نوع التغيير |
-|-------|-------------|
-| `src/contexts/AuthContext.tsx` | تحويل كامل - من Supabase Auth إلى PHP Sessions |
-| `src/components/admin/ProtectedRoute.tsx` | تعديل طفيف |
-| `src/pages/AdminLogin.tsx` | تحويل تسجيل الدخول |
-| `src/pages/ForgotPassword.tsx` | تحويل |
-| `src/pages/ResetPassword.tsx` | تحويل |
-| `src/pages/admin/Dashboard.tsx` | تحويل الإحصائيات |
-| `src/pages/admin/HeroEditor.tsx` | تحويل CRUD |
-| `src/pages/admin/AboutEditor.tsx` | تحويل CRUD |
-| `src/pages/admin/ServicesManager.tsx` | تحويل CRUD |
-| `src/pages/admin/RegionsManager.tsx` | تحويل CRUD |
-| `src/pages/admin/StationsManager.tsx` | تحويل CRUD + رفع الصور |
-| `src/pages/admin/PartnersManager.tsx` | تحويل CRUD + رفع الصور |
-| `src/pages/admin/MessagesInbox.tsx` | تحويل CRUD |
-| `src/pages/admin/AdminSettings.tsx` | تحويل إدارة المستخدمين |
-| `src/components/sections/Hero.tsx` | تحويل القراءة |
-| `src/components/sections/About.tsx` | تحويل القراءة |
-| `src/components/sections/Services.tsx` | تحويل القراءة |
-| `src/components/sections/Stations.tsx` | تحويل القراءة |
-| `src/components/sections/Partners.tsx` | تحويل القراءة |
-| `src/components/sections/Contact.tsx` | تحويل إرسال النموذج + رفع الملفات |
-
-### ملفات للحذف:
-| الملف | السبب |
-|-------|-------|
-| `src/integrations/supabase/client.ts` | لم يعد مطلوباً |
-| `src/integrations/supabase/client.safe.ts` | لم يعد مطلوباً |
-| `src/integrations/supabase/types.ts` | لم يعد مطلوباً |
-| `supabase/functions/manage-users/index.ts` | لم يعد مطلوباً |
-
----
-
-## الجزء الثالث: تفاصيل التنفيذ
-
-### 1. خدمة API Client الجديدة (`src/lib/api.ts`)
-
-```typescript
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-
-export const api = {
-  async get<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      credentials: "include",
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Request failed");
-    }
-    return response.json();
-  },
-
-  async post<T>(endpoint: string, data?: any): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Request failed");
-    }
-    return response.json();
-  },
-
-  async put<T>(endpoint: string, data: any): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Request failed");
-    }
-    return response.json();
-  },
-
-  async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Request failed");
-    }
-    return response.json();
-  },
-
-  async upload(endpoint: string, file: File): Promise<{ url: string }> {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Upload failed");
-    }
-    return response.json();
-  },
-};
-```
-
-### 2. تحويل AuthContext
-
-**من (Supabase):**
-```typescript
-const { error } = await supabase.auth.signInWithPassword({
-  email,
-  password,
-});
-```
-
-**إلى (PHP API):**
-```typescript
-const response = await api.post("/auth/login.php", {
-  email,
-  password,
-});
-```
-
-### 3. تحويل عمليات CRUD
-
-**من (Supabase):**
-```typescript
-const { data, error } = await supabase
-  .from("stations")
-  .select("*")
-  .order("region", { ascending: true });
-```
-
-**إلى (PHP API):**
-```typescript
-const data = await api.get("/stations/list.php");
-```
-
-### 4. تحويل رفع الملفات
-
-**من (Supabase Storage):**
-```typescript
-await supabase.storage.from("uploads").upload(filePath, file);
-const { data } = supabase.storage.from("uploads").getPublicUrl(filePath);
-```
-
-**إلى (PHP):**
-```typescript
-const { url } = await api.upload("/upload/upload.php?folder=stations", file);
-```
-
----
-
-## الجزء الرابع: ملفات PHP الرئيسية
-
-### `api/config/database.php`
 ```php
-<?php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'u761491305_web');
-define('DB_USER', 'YOUR_DB_USERNAME');
-define('DB_PASS', 'YOUR_DB_PASSWORD');
-
-function getDB() {
-    static $pdo = null;
-    if ($pdo === null) {
-        try {
-            $pdo = new PDO(
-                "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-                DB_USER,
-                DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false,
-                ]
-            );
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Database connection failed']);
-            exit;
-        }
-    }
-    return $pdo;
-}
-```
-
-### `api/middleware/cors.php`
-```php
-<?php
-header("Access-Control-Allow-Origin: https://YOUR_DOMAIN.com");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Content-Type: application/json; charset=utf-8");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-```
-
-### `api/middleware/auth.php`
-```php
-<?php
-session_start();
-
-function requireAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Unauthorized']);
-        exit;
-    }
-}
-
-function requireAdmin() {
-    requireAuth();
-    if ($_SESSION['role'] !== 'admin') {
-        http_response_code(403);
-        echo json_encode(['error' => 'Admin access required']);
-        exit;
-    }
-}
-
-function isAdminOrEditor() {
-    return isset($_SESSION['role']) && 
-           in_array($_SESSION['role'], ['admin', 'editor']);
-}
-
-function getCurrentUserId() {
-    return $_SESSION['user_id'] ?? null;
-}
-
-function getCurrentUserRole() {
-    return $_SESSION['role'] ?? null;
-}
-```
-
-### `api/auth/login.php`
-```php
-<?php
-require_once '../middleware/cors.php';
-require_once '../config/database.php';
-session_start();
-
-$data = json_decode(file_get_contents('php://input'), true);
-
-if (!isset($data['email']) || !isset($data['password'])) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Email and password are required']);
-    exit;
-}
-
-$pdo = getDB();
-$stmt = $pdo->prepare("
-    SELECT u.*, ur.role 
-    FROM users u 
-    LEFT JOIN user_roles ur ON u.id = ur.user_id 
-    WHERE u.email = ?
-");
-$stmt->execute([$data['email']]);
-$user = $stmt->fetch();
-
-if (!$user || !password_verify($data['password'], $user['password_hash'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Invalid credentials']);
-    exit;
-}
-
-if ($user['is_banned']) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Account is banned']);
-    exit;
-}
-
-$_SESSION['user_id'] = $user['id'];
-$_SESSION['role'] = $user['role'] ?? 'editor';
-
-// Update last login
-$pdo->prepare("UPDATE users SET last_sign_in_at = NOW() WHERE id = ?")
-    ->execute([$user['id']]);
-
-echo json_encode([
-    'success' => true,
-    'user' => [
-        'id' => $user['id'],
-        'email' => $user['email'],
-        'role' => $user['role'] ?? 'editor'
+$pdo = new PDO(
+    "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+    DB_USER,
+    DB_PASS,
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_PERSISTENT => true, // ← إضافة هذا السطر
     ]
-]);
+);
 ```
 
-### `api/upload/upload.php`
+---
+
+## الحل 2: إنشاء API موحد للصفحة الرئيسية
+
+بدلاً من 6 طلبات منفصلة، نجمعها في طلب واحد.
+
+### ملف جديد: `php-api/homepage/data.php`
+يجلب جميع بيانات الصفحة الرئيسية في طلب واحد.
+
 ```php
 <?php
-require_once '../middleware/cors.php';
-require_once '../middleware/auth.php';
+require_once __DIR__ . '/../middleware/cors.php';
+require_once __DIR__ . '/../config/database.php';
 
-requireAuth();
-if (!isAdminOrEditor()) {
-    http_response_code(403);
-    echo json_encode(['error' => 'Access denied']);
-    exit;
-}
-
-$folder = $_GET['folder'] ?? 'general';
-$allowedFolders = ['hero', 'services', 'stations', 'partners', 'contact-attachments'];
-if (!in_array($folder, $allowedFolders)) {
-    $folder = 'general';
-}
-
-if (!isset($_FILES['file'])) {
-    http_response_code(400);
-    echo json_encode(['error' => 'No file uploaded']);
-    exit;
-}
-
-$file = $_FILES['file'];
-$allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
-
-if (!in_array($file['type'], $allowedTypes)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid file type']);
-    exit;
-}
-
-if ($file['size'] > 5 * 1024 * 1024) {
-    http_response_code(400);
-    echo json_encode(['error' => 'File too large (max 5MB)']);
-    exit;
-}
-
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = time() . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
-$targetDir = "../../uploads/{$folder}/";
-
-if (!is_dir($targetDir)) {
-    mkdir($targetDir, 0755, true);
-}
-
-$targetPath = $targetDir . $filename;
-
-if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-    $url = "/uploads/{$folder}/{$filename}";
-    echo json_encode(['url' => $url, 'success' => true]);
-} else {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to save file']);
-}
-```
-
----
-
-## الجزء الخامس: ملفات إضافية مطلوبة
-
-### `.htaccess` (في مجلد public_html)
-```apache
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /
+try {
+    $pdo = getDB();
     
-    # Handle React Router
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !^/api/
-    RewriteCond %{REQUEST_URI} !^/uploads/
-    RewriteRule . /index.html [L]
-</IfModule>
+    // Hero Section
+    $hero = $pdo->query("SELECT * FROM hero_section WHERE is_active = 1 LIMIT 1")->fetch();
+    
+    // About Section
+    $about = $pdo->query("SELECT * FROM about_section LIMIT 1")->fetch();
+    
+    // Services
+    $services = $pdo->query("SELECT * FROM services WHERE is_active = 1 ORDER BY display_order")->fetchAll();
+    
+    // Regions
+    $regions = $pdo->query("SELECT * FROM regions ORDER BY name")->fetchAll();
+    
+    // Stations
+    $stations = $pdo->query("SELECT * FROM stations ORDER BY region_id")->fetchAll();
+    
+    // Partners
+    $partners = $pdo->query("SELECT * FROM partners WHERE is_active = 1 ORDER BY display_order")->fetchAll();
+    
+    echo json_encode([
+        'hero' => $hero,
+        'about' => $about,
+        'services' => $services,
+        'regions' => $regions,
+        'stations' => $stations,
+        'partners' => $partners,
+    ]);
 
-# Security headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-</IfModule>
-
-# Protect sensitive files
-<FilesMatch "\.(env|sql|log)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
+} catch (Exception $e) {
+    error_log("Homepage data error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Failed to fetch homepage data']);
+}
 ```
 
-### `.env` المحدث (للـ React)
-```env
-VITE_API_URL=/api
+---
+
+## الحل 3: إضافة HTTP Caching Headers
+
+### تعديل جميع ملفات PHP العامة (hero/get.php, about/get.php, إلخ)
+
+```php
+// في بداية الملف بعد CORS
+header("Cache-Control: public, max-age=300"); // 5 دقائق
+header("ETag: " . md5(json_encode($data)));
 ```
 
 ---
 
-## الجزء السادس: خطوات التنفيذ
+## الحل 4: تحسين React باستخدام staleTime
 
-### المرحلة 1: إنشاء ملفات PHP API (أولاً)
-1. إنشاء جميع ملفات PHP المذكورة أعلاه
-2. رفعها على Hostinger في مجلد `public_html/api/`
-3. إنشاء مجلدات `uploads/` بالصلاحيات المناسبة
+### تعديل جميع useQuery في الأقسام العامة
 
-### المرحلة 2: تعديل ملفات React
-1. إنشاء `src/lib/api.ts`
-2. إنشاء `src/types/api.ts`
-3. تعديل `AuthContext.tsx`
-4. تعديل صفحات الإدارة (9 ملفات)
-5. تعديل الأقسام العامة (6 ملفات)
-6. حذف ملفات Supabase
-
-### المرحلة 3: الاختبار والنشر
-1. اختبار محلي
-2. بناء المشروع: `npm run build`
-3. رفع ملفات `dist/` إلى `public_html/`
-4. اختبار شامل على الاستضافة
+```typescript
+const { data: heroData, isLoading } = useQuery({
+  queryKey: ["hero-section"],
+  queryFn: async () => { ... },
+  staleTime: 5 * 60 * 1000, // 5 دقائق - لن يعيد الطلب
+  gcTime: 30 * 60 * 1000,   // 30 دقيقة في الذاكرة
+});
+```
 
 ---
 
-## ملاحظات أمنية مهمة
+## الحل 5: عرض المحتوى فوراً مع Fallback
 
-1. **تشفير كلمات المرور**: استخدام `password_hash()` و `password_verify()` في PHP
-2. **حماية الجلسات**: إعداد `session.cookie_httponly = true`
-3. **التحقق من المدخلات**: استخدام Prepared Statements لكل استعلام
-4. **CORS**: تحديد النطاق المسموح بدقة
-5. **التحقق من الصلاحيات**: في كل endpoint يتطلب صلاحية
+### تعديل Hero.tsx لعرض المحتوى الثابت أولاً
+
+بدلاً من إظهار Skeleton أثناء التحميل، نعرض المحتوى الافتراضي مباشرة.
+
+```typescript
+// إزالة شرط isLoading من العرض الرئيسي
+// العنوان والوصف يظهران فوراً من الترجمات
+<h1 className="...">
+  <span>{t("hero.title")} </span>
+  <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
+</h1>
+```
 
 ---
 
-## هل تريد أن أبدأ بتنفيذ هذه الخطة؟
+## الحل 6: إضافة Database Indexes
 
-سأبدأ بإنشاء ملفات PHP API أولاً، ثم أعدل ملفات React بالترتيب.
+### SQL لتسريع الاستعلامات
+
+```sql
+-- في phpMyAdmin على Hostinger
+ALTER TABLE hero_section ADD INDEX idx_active (is_active);
+ALTER TABLE services ADD INDEX idx_active_order (is_active, display_order);
+ALTER TABLE stations ADD INDEX idx_region (region_id);
+ALTER TABLE partners ADD INDEX idx_active_order (is_active, display_order);
+```
+
+---
+
+## ملخص التغييرات
+
+| الملف | التغيير |
+|-------|---------|
+| `php-api/config/database.php` | إضافة Persistent Connection |
+| `php-api/homepage/data.php` | ملف جديد - API موحد |
+| `php-api/hero/get.php` | إضافة Cache headers |
+| `php-api/about/get.php` | إضافة Cache headers |
+| `php-api/services/list.php` | إضافة Cache headers |
+| `php-api/regions/list.php` | إضافة Cache headers |
+| `php-api/stations/list.php` | إضافة Cache headers |
+| `php-api/partners/list.php` | إضافة Cache headers |
+| `src/components/sections/Hero.tsx` | إضافة staleTime + إزالة loading state |
+| `src/components/sections/About.tsx` | إضافة staleTime |
+| `src/components/sections/Services.tsx` | إضافة staleTime |
+| `src/components/sections/Stations.tsx` | إضافة staleTime |
+| `src/components/sections/Partners.tsx` | إضافة staleTime |
+| `src/hooks/useHomepageData.ts` | ملف جديد - Hook موحد (اختياري) |
+
+---
+
+## النتيجة المتوقعة
+
+- **التحميل الأول**: أسرع بـ 50-70% (طلب واحد بدل 6)
+- **الزيارات المتكررة**: فورية تقريباً (من الكاش)
+- **تجربة المستخدم**: المحتوى يظهر فوراً بدون Skeleton
