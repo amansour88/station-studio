@@ -8,6 +8,25 @@ import logoFlame from "@/assets/logo-flame.png";
 import api from "@/lib/api";
 import type { Region, Station } from "@/types/api";
 
+// Convert decimal coordinates to DMS format for Google Maps URL
+const convertToDMS = (lat: number, lng: number): string => {
+  const toDegreesMinutesSeconds = (decimal: number): string => {
+    const degrees = Math.floor(Math.abs(decimal));
+    const minutesDecimal = (Math.abs(decimal) - degrees) * 60;
+    const minutes = Math.floor(minutesDecimal);
+    const seconds = ((minutesDecimal - minutes) * 60).toFixed(1);
+    return `${degrees}°${minutes.toString().padStart(2, '0')}'${seconds}"`;
+  };
+
+  const latDirection = lat >= 0 ? 'N' : 'S';
+  const lngDirection = lng >= 0 ? 'E' : 'W';
+  
+  const latDMS = toDegreesMinutesSeconds(lat) + latDirection;
+  const lngDMS = toDegreesMinutesSeconds(lng) + lngDirection;
+  
+  return `${latDMS}+${lngDMS}`;
+};
+
 // Lazy load the map component - force fresh import
 const StationsMap = lazy(() => import("@/components/ui/StationsMap"));
 
@@ -348,7 +367,7 @@ const Stations = () => {
                         href={
                           selectedStation.google_maps_url 
                             ? selectedStation.google_maps_url 
-                            : `https://www.google.com/maps/place/${selectedStation.latitude},${selectedStation.longitude}`
+                            : `https://www.google.com/maps/place/${convertToDMS(selectedStation.latitude!, selectedStation.longitude!)}`
                         }
                         target="_blank"
                         rel="noopener noreferrer"
