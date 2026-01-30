@@ -87,14 +87,18 @@ const Services = () => {
         { label: "Facility Rental", type: "facility_rental" },
       ];
 
-  const { data: services, isLoading } = useQuery({
+  const { data: services, isLoading, isError } = useQuery({
     queryKey: ["services"],
     queryFn: async () => {
       return api.get<Service[]>("/services/list.php");
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000,   // 30 minutes in cache
+    retry: 1, // Only retry once
   });
+
+  // Show content immediately, don't wait for failed API
+  const showLoading = isLoading && !isError;
 
   const scrollToContact = (serviceType: string) => {
     const contactSection = document.querySelector("#contact");
@@ -128,7 +132,7 @@ const Services = () => {
 
         {/* Services Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {isLoading ? (
+          {showLoading ? (
             // Loading skeleton
             Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="bg-card rounded-3xl overflow-hidden shadow-aws border border-border/50">
