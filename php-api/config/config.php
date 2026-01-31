@@ -14,13 +14,13 @@ define('SMTP_ENABLED', true);
 define('SMTP_HOST', 'smtp.hostinger.com');
 define('SMTP_PORT', 465);
 define('SMTP_SECURE', 'ssl');
-define('SMTP_USER', 'noreply@aws.sa');      // ← أنشئ هذا البريد في Hostinger
+define('SMTP_USER', 'a.mansour@aws.sa');      // ← بريد الإرسال
 define('SMTP_PASS', 'YOUR_EMAIL_PASSWORD'); // ← ضع كلمة المرور هنا
-define('SMTP_FROM', 'noreply@aws.sa');
+define('SMTP_FROM', 'a.mansour@aws.sa');
 define('SMTP_FROM_NAME', 'محطات اوس');
 
 // Admin Settings
-define('ADMIN_EMAIL', 'info@aws.sa');       // ← البريد المستلم للإشعارات
+define('ADMIN_EMAIL', 'a.mansour@aws.sa');       // ← البريد المستلم للإشعارات
 
 // Password Reset Settings
 define('PASSWORD_RESET_EXPIRY', 3600);      // صلاحية رابط إعادة التعيين (ساعة واحدة)
