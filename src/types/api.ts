@@ -37,6 +37,7 @@ export interface HeroSection {
   background_image_url: string | null;
   cta_text: string | null;
   cta_link: string | null;
+  stats: { number: string; label: string; icon: string }[] | null;
   is_active: boolean;
   updated_at: string;
   updated_by: string | null;

@@ -59,6 +59,9 @@ const About = () => {
 
   const displayParagraphs = paragraphs.length > 0 ? paragraphs : defaultParagraphs;
 
+  // Get title from database or use default translations
+  const sectionTitle = aboutData?.title || t("about.title");
+
   return (
     <section id="about" className="py-24 bg-muted/50">
       <div className="container px-4">
@@ -68,8 +71,7 @@ const About = () => {
             {t("about.label")}
           </span>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            {t("about.title")}
-            <span className="text-primary"> {t("about.titleHighlight")}</span>
+            {sectionTitle}
           </h2>
           <div className="section-divider mx-auto" />
         </div>

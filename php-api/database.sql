@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS hero_section (
     background_image_url TEXT,
     cta_text VARCHAR(100),
     cta_link VARCHAR(255),
+    stats JSON DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 1,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by VARCHAR(36)
@@ -203,18 +204,21 @@ INSERT INTO user_roles (id, user_id, role, created_at) VALUES
 ON DUPLICATE KEY UPDATE role = VALUES(role);
 
 -- Default hero section (ID ثابت - سجل واحد فقط)
-INSERT INTO hero_section (id, title, subtitle, description, cta_text, cta_link, is_active) VALUES 
+INSERT INTO hero_section (id, title, subtitle, description, cta_text, cta_link, stats, is_active) VALUES 
 ('hero-main-001', 'شريكك الموثوق على الطريق', 'منذ 1998', 
 'تعتبر شركة اوس للخدمات البترولية شركة رائدة في مجالات الطاقة، وتتمتع بالخبرة والكفاءة في تقديم وترويج الخدمات البترولية ومراكز الخدمة على الطريق.
 
 نشأت الشركة عام 1998 بفرع واحد في محافظة الأسياح بمنطقة القصيم، واليوم تمتلك الشركة أكثر من 78 محطة في خمسة مناطق وأكثر من ثلاثين مدينة ومحافظة.
 
 تهدف الشركة دائماً إلى تحقيق أعلى معايير الجودة والكفاءة المتسارعة، مع الالتزام برؤية المملكة 2030 في تطوير البنية التحتية.', 
-'تواصل معنا', '#contact', 1)
+'تواصل معنا', '#contact', 
+'[{"number": "78", "label": "محطة", "icon": "Fuel"}, {"number": "5", "label": "مناطق", "icon": "MapPin"}, {"number": "1998", "label": "سنة التأسيس", "icon": "Calendar"}]', 
+1)
 ON DUPLICATE KEY UPDATE 
   title = VALUES(title),
   subtitle = VALUES(subtitle),
-  description = VALUES(description);
+  description = VALUES(description),
+  stats = VALUES(stats);
 
 -- Default about section (ID ثابت)
 INSERT INTO about_section (id, title, content, stats) VALUES 

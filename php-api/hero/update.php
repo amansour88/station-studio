@@ -22,6 +22,9 @@ if (!isset($data['id'])) {
 try {
     $pdo = getDB();
     
+    // Encode stats as JSON if it's an array
+    $stats = isset($data['stats']) ? json_encode($data['stats']) : null;
+    
     $stmt = $pdo->prepare("
         UPDATE hero_section SET
             title = ?,
@@ -30,6 +33,7 @@ try {
             background_image_url = ?,
             cta_text = ?,
             cta_link = ?,
+            stats = ?,
             updated_at = NOW(),
             updated_by = ?
         WHERE id = ?
@@ -42,6 +46,7 @@ try {
         $data['background_image_url'] ?? null,
         $data['cta_text'] ?? null,
         $data['cta_link'] ?? null,
+        $stats,
         getCurrentUserId(),
         $data['id']
     ]);

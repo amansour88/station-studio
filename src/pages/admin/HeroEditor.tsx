@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { Save, Upload, X } from "lucide-react";
+import { Save, Upload, X, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+
+interface HeroStat {
+  number: string;
+  label: string;
+  icon: string;
+}
 
 interface HeroData {
   id: string;
@@ -16,7 +23,15 @@ interface HeroData {
   background_image_url: string | null;
   cta_text: string | null;
   cta_link: string | null;
+  stats: HeroStat[] | null;
 }
+
+const AVAILABLE_ICONS = [
+  { value: "Fuel", label: "وقود" },
+  { value: "MapPin", label: "موقع" },
+  { value: "Calendar", label: "تاريخ" },
+  { value: "Users", label: "مستخدمين" },
+];
 
 const HeroEditor = () => {
   const queryClient = useQueryClient();
@@ -33,7 +48,15 @@ const HeroEditor = () => {
   const fetchHeroData = async () => {
     try {
       const data = await api.get<HeroData>("/hero/get.php");
-      setHeroData(data);
+      // Parse stats if string
+      const parsedStats = Array.isArray(data.stats)
+        ? data.stats
+        : [
+            { number: "78", label: "محطة", icon: "Fuel" },
+            { number: "5", label: "مناطق", icon: "MapPin" },
+            { number: "1998", label: "سنة التأسيس", icon: "Calendar" },
+          ];
+      setHeroData({ ...data, stats: parsedStats });
     } catch (error) {
       console.error("Error fetching hero data:", error);
       toast({
@@ -92,6 +115,36 @@ const HeroEditor = () => {
     }
   };
 
+  const updateStat = (index: number, field: keyof HeroStat, value: string) => {
+    setHeroData((prev) => {
+      if (!prev || !prev.stats) return prev;
+      const newStats = [...prev.stats];
+      newStats[index] = { ...newStats[index], [field]: value };
+      return { ...prev, stats: newStats };
+    });
+  };
+
+  const addStat = () => {
+    setHeroData((prev) => {
+      if (!prev) return prev;
+      const currentStats = prev.stats || [];
+      return {
+        ...prev,
+        stats: [...currentStats, { number: "", label: "", icon: "Fuel" }],
+      };
+    });
+  };
+
+  const removeStat = (index: number) => {
+    setHeroData((prev) => {
+      if (!prev || !prev.stats) return prev;
+      return {
+        ...prev,
+        stats: prev.stats.filter((_, i) => i !== index),
+      };
+    });
+  };
+
   const handleSave = async () => {
     if (!heroData) return;
 
@@ -105,6 +158,7 @@ const HeroEditor = () => {
         background_image_url: heroData.background_image_url,
         cta_text: heroData.cta_text,
         cta_link: heroData.cta_link,
+        stats: heroData.stats,
       });
 
       // Invalidate hero cache to refresh homepage
@@ -138,8 +192,9 @@ const HeroEditor = () => {
 
   return (
     <AdminLayout title="تعديل الهيرو">
-      <div className="max-w-4xl">
-        <div className="bg-card rounded-2xl p-6 border border-border/50 mb-6">
+      <div className="max-w-4xl space-y-6">
+        {/* Main Content */}
+        <div className="bg-card rounded-2xl p-6 border border-border/50">
           <h3 className="text-lg font-bold text-foreground mb-6">
             محتوى القسم الرئيسي
           </h3>
@@ -158,13 +213,14 @@ const HeroEditor = () => {
                   )
                 }
                 className="bg-muted/50"
+                placeholder="مثال: شريكك الموثوق على الطريق"
               />
             </div>
 
             {/* Subtitle */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                العنوان الفرعي
+                العنوان الفرعي (المميز بالذهبي)
               </label>
               <Input
                 value={heroData?.subtitle || ""}
@@ -174,6 +230,7 @@ const HeroEditor = () => {
                   )
                 }
                 className="bg-muted/50"
+                placeholder="مثال: منذ 1998"
               />
             </div>
 
@@ -267,6 +324,78 @@ const HeroEditor = () => {
                 </label>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="bg-card rounded-2xl p-6 border border-border/50">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-foreground">
+              الإحصائيات (الكروت الثلاثة)
+            </h3>
+            <Button variant="outline" size="sm" onClick={addStat}>
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة إحصائية
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {heroData?.stats?.map((stat, index) => (
+              <div key={index} className="flex gap-4 items-start p-4 bg-muted/30 rounded-xl">
+                <div className="flex-1 grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      الرقم
+                    </label>
+                    <Input
+                      placeholder="78"
+                      value={stat.number}
+                      onChange={(e) => updateStat(index, "number", e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      العنوان
+                    </label>
+                    <Input
+                      placeholder="محطة"
+                      value={stat.label}
+                      onChange={(e) => updateStat(index, "label", e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      الأيقونة
+                    </label>
+                    <Select
+                      value={stat.icon}
+                      onValueChange={(value) => updateStat(index, "icon", value)}
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AVAILABLE_ICONS.map((icon) => (
+                          <SelectItem key={icon.value} value={icon.value}>
+                            {icon.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeStat(index)}
+                  className="text-destructive hover:text-destructive shrink-0 mt-5"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
 

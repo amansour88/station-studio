@@ -57,16 +57,22 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
 
   // Process stations to get coordinates - check direct lat/lng first, then extract from URL
+  // IMPORTANT: Filter out any NaN values to prevent map crash
   const stationsWithCoords = useMemo(() => {
     return stations
       .map(station => {
         // First try direct latitude/longitude fields
         if (station.latitude && station.longitude) {
-          return { ...station, lat: station.latitude, lng: station.longitude };
+          const lat = Number(station.latitude);
+          const lng = Number(station.longitude);
+          // Validate coordinates are valid numbers
+          if (!isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng)) {
+            return { ...station, lat, lng };
+          }
         }
         // Then try extracting from google_maps_url
         const coords = extractCoordinates(station.google_maps_url);
-        if (coords) {
+        if (coords && !isNaN(coords.lat) && !isNaN(coords.lng)) {
           return { ...station, lat: coords.lat, lng: coords.lng };
         }
         return null;
@@ -78,14 +84,21 @@ const StationsMap = ({ stations, selectedStation, onStationSelect }: StationsMap
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    // Calculate initial center
-    let initialCenter: [number, number] = [24.7136, 46.6753]; // Saudi Arabia center
+    // Calculate initial center - use Saudi Arabia center as default
+    let initialCenter: [number, number] = [24.7136, 46.6753];
     let initialZoom = 6;
 
     if (stationsWithCoords.length > 0) {
-      const avgLat = stationsWithCoords.reduce((sum, s) => sum + s.lat, 0) / stationsWithCoords.length;
-      const avgLng = stationsWithCoords.reduce((sum, s) => sum + s.lng, 0) / stationsWithCoords.length;
-      initialCenter = [avgLat, avgLng];
+      const validStations = stationsWithCoords.filter(s => 
+        !isNaN(s.lat) && !isNaN(s.lng) && isFinite(s.lat) && isFinite(s.lng)
+      );
+      if (validStations.length > 0) {
+        const avgLat = validStations.reduce((sum, s) => sum + s.lat, 0) / validStations.length;
+        const avgLng = validStations.reduce((sum, s) => sum + s.lng, 0) / validStations.length;
+        if (!isNaN(avgLat) && !isNaN(avgLng)) {
+          initialCenter = [avgLat, avgLng];
+        }
+      }
     }
 
     // Create map

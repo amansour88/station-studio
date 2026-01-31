@@ -1,28 +1,40 @@
-import { ArrowLeft, ArrowRight, MapPin, Fuel, Calendar, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Fuel, Calendar, Users, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import stationHero from "@/assets/station-hero.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 import api from "@/lib/api";
-import type { HeroSection } from "@/types/api";
+import type { HeroSection as HeroSectionType } from "@/types/api";
+
+// Icon mapping for dynamic icons from database
+const iconMap: Record<string, LucideIcon> = {
+  Fuel,
+  MapPin,
+  Calendar,
+  Users,
+};
 
 const Hero = () => {
   const { t, language } = useLanguage();
   
-  const defaultStats = [
-    { number: "78", label: t("hero.stations"), icon: Fuel },
-    { number: "5", label: t("hero.regions"), icon: MapPin },
-    { number: "1998", label: t("hero.founded"), icon: Calendar },
-  ];
-
   const { data: heroData } = useQuery({
     queryKey: ["hero-section"],
     queryFn: async () => {
-      return api.get<HeroSection | null>("/hero/get.php");
+      return api.get<HeroSectionType | null>("/hero/get.php");
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - won't refetch
-    gcTime: 30 * 60 * 1000,   // 30 minutes in cache
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
+
+  // Default stats from translations if no API data
+  const defaultStats = [
+    { number: "78", label: t("hero.stations"), icon: "Fuel" },
+    { number: "5", label: t("hero.regions"), icon: "MapPin" },
+    { number: "1998", label: t("hero.founded"), icon: "Calendar" },
+  ];
+
+  // Use API stats if available, otherwise defaults
+  const stats = heroData?.stats?.length ? heroData.stats : defaultStats;
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -31,7 +43,10 @@ const Hero = () => {
     }
   };
 
-  // Use database values or defaults with translations
+  // Use database values if available, otherwise fall back to translations
+  const title = heroData?.title || t("hero.title");
+  const subtitle = heroData?.subtitle || t("hero.titleHighlight");
+  const description = heroData?.description || t("hero.description");
   const ctaText = heroData?.cta_text || t("hero.cta");
   const ctaLink = heroData?.cta_link || "#services";
   const backgroundImage = heroData?.background_image_url || stationHero;
@@ -68,10 +83,10 @@ const Hero = () => {
             </span>
           </div>
 
-          {/* Main Heading - Show immediately with translations */}
+          {/* Main Heading - Use database title */}
           <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up">
-            <span>{t("hero.title")} </span>
-            <span className="text-gradient-gold">{t("hero.titleHighlight")}</span>
+            <span>{title} </span>
+            <span className="text-gradient-gold">{subtitle}</span>
             {/* Animated arrows - car path effect */}
             <span className={`inline-flex items-center ${language === "ar" ? "mr-6" : "ml-6"} align-baseline translate-y-0.5`}>
               <span className={`flex text-secondary text-xl md:text-3xl lg:text-4xl font-black ${language === "en" ? "flex-row-reverse" : ""}`}>
@@ -85,10 +100,12 @@ const Hero = () => {
             </span>
           </h1>
 
-          {/* Subtitle - Show immediately */}
-          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            {t("hero.description")}
-          </p>
+          {/* Subtitle/Description - Use database description */}
+          <p 
+            className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-6 animate-fade-in-up" 
+            style={{ animationDelay: "0.2s" }}
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
 
           {/* Million Customers Banner */}
           <div className="inline-flex items-center gap-4 bg-gradient-to-r from-secondary/30 via-secondary/20 to-secondary/30 backdrop-blur-sm rounded-full px-8 py-4 border border-secondary/50 mb-10 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
@@ -104,9 +121,9 @@ const Hero = () => {
             <Button
               size="lg"
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold text-lg px-8 py-6 shadow-gold transition-all duration-300 hover:scale-105"
-              onClick={() => scrollToSection("#services")}
+              onClick={() => scrollToSection(ctaLink)}
             >
-              {t("hero.cta")}
+              {ctaText}
               <ArrowIcon className={`w-5 h-5 ${language === "ar" ? "mr-2" : "ml-2"}`} />
             </Button>
             <Button
@@ -119,21 +136,24 @@ const Hero = () => {
             </Button>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Now dynamic from database */}
           <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
-            {defaultStats.map((stat, index) => (
-              <div 
-                key={index}
-                className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-secondary/50 transition-all duration-300 hover:scale-105 group"
-              >
-                <div className="text-3xl md:text-4xl font-bold text-secondary mb-1 group-hover:scale-110 transition-transform duration-300">
-                  {stat.number}
+            {stats.map((stat, index) => {
+              const IconComponent = iconMap[stat.icon] || Fuel;
+              return (
+                <div 
+                  key={index}
+                  className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-secondary/50 transition-all duration-300 hover:scale-105 group"
+                >
+                  <div className="text-3xl md:text-4xl font-bold text-secondary mb-1 group-hover:scale-110 transition-transform duration-300">
+                    {stat.number}
+                  </div>
+                  <div className="text-white/70 text-sm md:text-base">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-white/70 text-sm md:text-base">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
