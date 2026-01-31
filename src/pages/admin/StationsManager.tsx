@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, MapPin, Save, X, Upload, ExternalLink } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ interface Station {
 }
 
 const StationsManager = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [stations, setStations] = useState<Station[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
@@ -173,6 +175,9 @@ const StationsManager = () => {
           description: "تم حفظ التغييرات بنجاح",
         });
       }
+
+      // Invalidate stations cache
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
 
       fetchStations();
       handleCancel();
@@ -435,6 +440,23 @@ const StationsManager = () => {
 
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-foreground mb-2">
+                  الخدمات المتوفرة (مفصولة بفاصلة)
+                </label>
+                <Input
+                  value={editingStation.services?.join(", ") || ""}
+                  onChange={(e) =>
+                    setEditingStation({
+                      ...editingStation,
+                      services: e.target.value.split(",").map(s => s.trim()).filter(Boolean),
+                    })
+                  }
+                  placeholder="غسيل سيارات، سوبرماركت، مطعم، كافيه، صراف آلي..."
+                  className="bg-muted/50"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   الصورة
                 </label>
                 <div className="flex items-center gap-4">
@@ -532,6 +554,19 @@ const StationsManager = () => {
                     <p className="text-sm text-muted-foreground">
                       {station.region} {station.city && `- ${station.city}`}
                     </p>
+                    {/* Products & Services */}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {station.products?.slice(0, 3).map((product, idx) => (
+                        <span key={`p-${idx}`} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                          {product}
+                        </span>
+                      ))}
+                      {station.services?.slice(0, 2).map((service, idx) => (
+                        <span key={`s-${idx}`} className="text-[10px] bg-secondary/10 text-secondary-foreground px-1.5 py-0.5 rounded-full">
+                          {service}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
                   <Switch

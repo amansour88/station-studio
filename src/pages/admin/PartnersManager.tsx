@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Save, X, Upload, ExternalLink } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ interface Partner {
 }
 
 const PartnersManager = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,6 +138,8 @@ const PartnersManager = () => {
           description: "تم حفظ التغييرات بنجاح",
         });
       }
+      // Invalidate partners cache
+      queryClient.invalidateQueries({ queryKey: ["partners"] });
 
       fetchPartners();
       handleCancel();

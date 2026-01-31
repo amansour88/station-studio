@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Save, Upload, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 
@@ -16,6 +17,7 @@ interface AboutData {
 }
 
 const AboutEditor = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -139,6 +141,9 @@ const AboutEditor = () => {
         stats: aboutData.stats,
       });
 
+      // Invalidate about cache to refresh homepage
+      queryClient.invalidateQueries({ queryKey: ["about-section"] });
+
       toast({
         title: "تم الحفظ",
         description: "تم حفظ التغييرات بنجاح",
@@ -194,16 +199,19 @@ const AboutEditor = () => {
               <label className="block text-sm font-medium text-foreground mb-2">
                 المحتوى
               </label>
-              <Textarea
+              <RichTextEditor
                 value={aboutData?.content || ""}
-                onChange={(e) =>
+                onChange={(content) =>
                   setAboutData((prev) =>
-                    prev ? { ...prev, content: e.target.value } : null
+                    prev ? { ...prev, content } : null
                   )
                 }
-                rows={6}
-                className="bg-muted/50"
+                placeholder="اكتب محتوى قسم من نحن هنا..."
+                minHeight="250px"
               />
+              <p className="text-xs text-muted-foreground mt-2">
+                يمكنك تنسيق النص باستخدام شريط الأدوات أعلاه (تغيير الخط، اللون، الحجم، المحاذاة)
+              </p>
             </div>
 
             {/* Image */}

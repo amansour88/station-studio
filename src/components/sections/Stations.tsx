@@ -258,24 +258,35 @@ const Stations = () => {
                             {station.city} - {station.region}
                           </p>
                           
-                          {/* Quick Info Icons */}
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          {/* Products & Services Display */}
+                          <div className="space-y-1.5">
+                            {/* Products */}
                             {station.products && station.products.length > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Fuel className="w-3 h-3 text-primary" />
-                                {station.products.length}
-                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {station.products.slice(0, 3).map((product, idx) => (
+                                  <span key={idx} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                    <Fuel className="w-2.5 h-2.5" />
+                                    {product}
+                                  </span>
+                                ))}
+                                {station.products.length > 3 && (
+                                  <span className="text-[10px] text-muted-foreground">+{station.products.length - 3}</span>
+                                )}
+                              </div>
                             )}
+                            {/* Services */}
                             {station.services && station.services.length > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Car className="w-3 h-3 text-secondary" />
-                                {station.services.length}
-                              </span>
-                            )}
-                            {station.phone && (
-                              <span className="flex items-center gap-1">
-                                <Phone className="w-3 h-3" />
-                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {station.services.slice(0, 2).map((service, idx) => (
+                                  <span key={idx} className="text-[10px] bg-secondary/10 text-secondary-foreground px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                    <Car className="w-2.5 h-2.5" />
+                                    {service}
+                                  </span>
+                                ))}
+                                {station.services.length > 2 && (
+                                  <span className="text-[10px] text-muted-foreground">+{station.services.length - 2}</span>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
