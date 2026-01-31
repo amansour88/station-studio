@@ -169,45 +169,42 @@ CREATE TABLE IF NOT EXISTS site_settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===========================================
--- Default site settings
+-- Default site settings (استخدام IDs ثابتة لمنع التكرار)
 -- ===========================================
 INSERT INTO site_settings (id, setting_key, setting_value) VALUES
-(UUID(), 'phone', '920008436'),
-(UUID(), 'email', 'info@aws.sa'),
-(UUID(), 'address', 'المملكة العربية السعودية'),
-(UUID(), 'facebook_url', ''),
-(UUID(), 'twitter_url', ''),
-(UUID(), 'instagram_url', ''),
-(UUID(), 'linkedin_url', ''),
-(UUID(), 'whatsapp', ''),
-(UUID(), 'map_latitude', '26.3266'),
-(UUID(), 'map_longitude', '43.9748'),
-(UUID(), 'map_zoom', '6')
-ON DUPLICATE KEY UPDATE setting_key = setting_key;
+('set-phone-001', 'phone', '920008436'),
+('set-email-001', 'email', 'info@aws.sa'),
+('set-address-001', 'address', 'المملكة العربية السعودية'),
+('set-facebook-001', 'facebook_url', ''),
+('set-twitter-001', 'twitter_url', ''),
+('set-instagram-001', 'instagram_url', ''),
+('set-linkedin-001', 'linkedin_url', ''),
+('set-whatsapp-001', 'whatsapp', ''),
+('set-lat-001', 'map_latitude', '26.3266'),
+('set-lng-001', 'map_longitude', '43.9748'),
+('set-zoom-001', 'map_zoom', '6')
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 
 -- ===========================================
--- Insert default data
+-- Insert default data (IDs ثابتة)
 -- ===========================================
 
 -- Default admin user (password: admin123)
 INSERT INTO users (id, email, password_hash, created_at) VALUES 
-(UUID(), 'admin@aws.sa', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW())
+('admin-user-001', 'admin@aws.sa', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NOW())
 ON DUPLICATE KEY UPDATE email = email;
 
--- Get admin user ID and create profile and role
-SET @admin_id = (SELECT id FROM users WHERE email = 'admin@aws.sa' LIMIT 1);
-
 INSERT INTO profiles (id, user_id, username, full_name, created_at, updated_at) VALUES 
-(UUID(), @admin_id, 'admin', 'المسؤول', NOW(), NOW())
-ON DUPLICATE KEY UPDATE username = username;
+('admin-profile-001', 'admin-user-001', 'admin', 'المسؤول', NOW(), NOW())
+ON DUPLICATE KEY UPDATE full_name = VALUES(full_name);
 
 INSERT INTO user_roles (id, user_id, role, created_at) VALUES 
-(UUID(), @admin_id, 'admin', NOW())
-ON DUPLICATE KEY UPDATE role = role;
+('admin-role-001', 'admin-user-001', 'admin', NOW())
+ON DUPLICATE KEY UPDATE role = VALUES(role);
 
--- Default hero section with full description
+-- Default hero section (ID ثابت - سجل واحد فقط)
 INSERT INTO hero_section (id, title, subtitle, description, cta_text, cta_link, is_active) VALUES 
-(UUID(), 'شريكك الموثوق على الطريق', 'منذ 1998', 
+('hero-main-001', 'شريكك الموثوق على الطريق', 'منذ 1998', 
 'تعتبر شركة اوس للخدمات البترولية شركة رائدة في مجالات الطاقة، وتتمتع بالخبرة والكفاءة في تقديم وترويج الخدمات البترولية ومراكز الخدمة على الطريق.
 
 نشأت الشركة عام 1998 بفرع واحد في محافظة الأسياح بمنطقة القصيم، واليوم تمتلك الشركة أكثر من 78 محطة في خمسة مناطق وأكثر من ثلاثين مدينة ومحافظة.
@@ -215,62 +212,62 @@ INSERT INTO hero_section (id, title, subtitle, description, cta_text, cta_link, 
 تهدف الشركة دائماً إلى تحقيق أعلى معايير الجودة والكفاءة المتسارعة، مع الالتزام برؤية المملكة 2030 في تطوير البنية التحتية.', 
 'تواصل معنا', '#contact', 1)
 ON DUPLICATE KEY UPDATE 
-  description = VALUES(description),
   title = VALUES(title),
-  subtitle = VALUES(subtitle);
+  subtitle = VALUES(subtitle),
+  description = VALUES(description);
 
--- Default about section
+-- Default about section (ID ثابت)
 INSERT INTO about_section (id, title, content, stats) VALUES 
-(UUID(), 'من نحن', 'شركة اوس للخدمات البترولية، رائدة في مجال الخدمات البترولية منذ 1998.', '[{"label": "سنوات الخبرة", "value": "25+"}, {"label": "محطة وقود", "value": "78"}, {"label": "منطقة", "value": "5"}]')
-ON DUPLICATE KEY UPDATE title = title;
+('about-main-001', 'من نحن', 'شركة اوس للخدمات البترولية، رائدة في مجال الخدمات البترولية منذ 1998.', '[{"label": "سنوات الخبرة", "value": "25+"}, {"label": "محطة وقود", "value": "78"}, {"label": "منطقة", "value": "5"}]')
+ON DUPLICATE KEY UPDATE content = VALUES(content);
 
 -- ===========================================
--- SEED DATA: المناطق
+-- SEED DATA: المناطق (IDs ثابتة)
 -- ===========================================
 INSERT INTO regions (id, name, slug, display_order, is_active) VALUES
-(UUID(), 'القصيم', 'qassim', 1, 1),
-(UUID(), 'مكة المكرمة', 'makkah', 2, 1),
-(UUID(), 'المدينة المنورة', 'madinah', 3, 1),
-(UUID(), 'حائل', 'hail', 4, 1),
-(UUID(), 'عسير', 'asir', 5, 1)
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+('region-qassim-001', 'القصيم', 'qassim', 1, 1),
+('region-makkah-001', 'مكة المكرمة', 'makkah', 2, 1),
+('region-madinah-001', 'المدينة المنورة', 'madinah', 3, 1),
+('region-hail-001', 'حائل', 'hail', 4, 1),
+('region-asir-001', 'عسير', 'asir', 5, 1)
+ON DUPLICATE KEY UPDATE name = VALUES(name), display_order = VALUES(display_order);
 
 -- ===========================================
--- SEED DATA: الخدمات
+-- SEED DATA: الخدمات (IDs ثابتة)
 -- ===========================================
 INSERT INTO services (id, title, description, icon, display_order, is_active) VALUES
-(UUID(), 'الوقود', 'بنزين 91، بنزين 95، ديزل بأعلى معايير الجودة', 'Fuel', 1, 1),
-(UUID(), 'ميني ماركت', 'تشكيلة واسعة من المنتجات والمستلزمات', 'ShoppingCart', 2, 1),
-(UUID(), 'مركز خدمة السيارات', 'صيانة وغيار الزيوت والإطارات', 'Car', 3, 1),
-(UUID(), 'المطاعم والمقاهي', 'وجبات سريعة ومشروبات متنوعة', 'Coffee', 4, 1),
-(UUID(), 'الخدمات الفندقية', 'غرف مريحة للمسافرين', 'Hotel', 5, 1),
-(UUID(), 'خدمة غسيل السيارات', 'غسيل يدوي وأوتوماتيكي', 'Droplets', 6, 1)
-ON DUPLICATE KEY UPDATE title = VALUES(title);
+('service-fuel-001', 'الوقود', 'بنزين 91، بنزين 95، ديزل بأعلى معايير الجودة', 'Fuel', 1, 1),
+('service-market-001', 'ميني ماركت', 'تشكيلة واسعة من المنتجات والمستلزمات', 'ShoppingCart', 2, 1),
+('service-car-001', 'مركز خدمة السيارات', 'صيانة وغيار الزيوت والإطارات', 'Car', 3, 1),
+('service-food-001', 'المطاعم والمقاهي', 'وجبات سريعة ومشروبات متنوعة', 'Coffee', 4, 1),
+('service-hotel-001', 'الخدمات الفندقية', 'غرف مريحة للمسافرين', 'Hotel', 5, 1),
+('service-wash-001', 'خدمة غسيل السيارات', 'غسيل يدوي وأوتوماتيكي', 'Droplets', 6, 1)
+ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description);
 
 -- ===========================================
--- SEED DATA: الشركاء
+-- SEED DATA: الشركاء (IDs ثابتة)
 -- ===========================================
 INSERT INTO partners (id, name, description, display_order, is_active) VALUES
-(UUID(), 'أرامكو السعودية', 'الشريك الاستراتيجي في الوقود', 1, 1),
-(UUID(), 'بترومين', 'زيوت ومحركات', 2, 1),
-(UUID(), 'ميشلان', 'إطارات عالمية', 3, 1),
-(UUID(), 'كاسترول', 'زيوت محركات', 4, 1),
-(UUID(), 'هرفي', 'وجبات سريعة', 5, 1),
-(UUID(), 'لولو هايبر', 'تجزئة ومواد غذائية', 6, 1)
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+('partner-aramco-001', 'أرامكو السعودية', 'الشريك الاستراتيجي في الوقود', 1, 1),
+('partner-petromin-001', 'بترومين', 'زيوت ومحركات', 2, 1),
+('partner-michelin-001', 'ميشلان', 'إطارات عالمية', 3, 1),
+('partner-castrol-001', 'كاسترول', 'زيوت محركات', 4, 1),
+('partner-herfy-001', 'هرفي', 'وجبات سريعة', 5, 1),
+('partner-lulu-001', 'لولو هايبر', 'تجزئة ومواد غذائية', 6, 1)
+ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description);
 
 -- ===========================================
--- SEED DATA: المحطات (10 محطات كعينة)
+-- SEED DATA: المحطات (IDs ثابتة)
 -- ===========================================
 INSERT INTO stations (id, name, region, city, latitude, longitude, is_active, products, services) VALUES
-(UUID(), 'محطة بريدة الرئيسية', 'القصيم', 'بريدة', 26.3266, 43.9748, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","غسيل سيارات","مركز صيانة"]'),
-(UUID(), 'محطة عنيزة', 'القصيم', 'عنيزة', 26.0840, 43.9953, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم"]'),
-(UUID(), 'محطة الرس', 'القصيم', 'الرس', 25.8690, 43.4980, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]'),
-(UUID(), 'محطة جدة الكبرى', 'مكة المكرمة', 'جدة', 21.4858, 39.1925, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","مقهى","غسيل سيارات"]'),
-(UUID(), 'محطة مكة', 'مكة المكرمة', 'مكة المكرمة', 21.4225, 39.8262, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت","مطعم"]'),
-(UUID(), 'محطة المدينة المركزية', 'المدينة المنورة', 'المدينة المنورة', 24.4672, 39.6024, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","فندق"]'),
-(UUID(), 'محطة ينبع', 'المدينة المنورة', 'ينبع', 24.0895, 38.0618, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]'),
-(UUID(), 'محطة حائل الرئيسية', 'حائل', 'حائل', 27.5114, 41.7208, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم"]'),
-(UUID(), 'محطة خميس مشيط', 'عسير', 'خميس مشيط', 18.3066, 42.7296, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","مركز صيانة"]'),
-(UUID(), 'محطة أبها', 'عسير', 'أبها', 18.2164, 42.5053, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]')
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+('station-buraidah-001', 'محطة بريدة الرئيسية', 'القصيم', 'بريدة', 26.3266, 43.9748, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","غسيل سيارات","مركز صيانة"]'),
+('station-unayzah-001', 'محطة عنيزة', 'القصيم', 'عنيزة', 26.0840, 43.9953, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم"]'),
+('station-rass-001', 'محطة الرس', 'القصيم', 'الرس', 25.8690, 43.4980, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]'),
+('station-jeddah-001', 'محطة جدة الكبرى', 'مكة المكرمة', 'جدة', 21.4858, 39.1925, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","مقهى","غسيل سيارات"]'),
+('station-makkah-001', 'محطة مكة', 'مكة المكرمة', 'مكة المكرمة', 21.4225, 39.8262, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت","مطعم"]'),
+('station-madinah-001', 'محطة المدينة المركزية', 'المدينة المنورة', 'المدينة المنورة', 24.4672, 39.6024, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","فندق"]'),
+('station-yanbu-001', 'محطة ينبع', 'المدينة المنورة', 'ينبع', 24.0895, 38.0618, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]'),
+('station-hail-001', 'محطة حائل الرئيسية', 'حائل', 'حائل', 27.5114, 41.7208, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم"]'),
+('station-khamis-001', 'محطة خميس مشيط', 'عسير', 'خميس مشيط', 18.3066, 42.7296, 1, '["بنزين 91","بنزين 95","ديزل"]', '["ميني ماركت","مطعم","مركز صيانة"]'),
+('station-abha-001', 'محطة أبها', 'عسير', 'أبها', 18.2164, 42.5053, 1, '["بنزين 91","بنزين 95"]', '["ميني ماركت"]')
+ON DUPLICATE KEY UPDATE name = VALUES(name), region = VALUES(region);
