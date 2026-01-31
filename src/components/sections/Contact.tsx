@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
-import api from "@/lib/api";
+import api, { ApiRequestError } from "@/lib/api";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل").max(100),
@@ -127,6 +127,24 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
     }
   };
 
+  const getFriendlySubmitError = (error: unknown) => {
+    // Network/CORS errors usually surface as TypeError('Failed to fetch') with no HTTP status.
+    if (error instanceof TypeError && error.message.toLowerCase().includes("failed to fetch")) {
+      return "تعذر الاتصال بالخادم. تأكد من إعدادات CORS أو حاول مرة أخرى لاحقاً.";
+    }
+
+    if (error instanceof ApiRequestError) {
+      // Prefer backend-provided message (e.g. validation errors)
+      return error.message || "حدث خطأ في إرسال الرسالة.";
+    }
+
+    if (error instanceof Error) {
+      return error.message || "حدث خطأ في إرسال الرسالة.";
+    }
+
+    return "حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -206,7 +224,7 @@ const Contact = ({ defaultType, defaultServiceType }: ContactProps) => {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "حدث خطأ في إرسال الرسالة. يرجى المحاولة مرة أخرى.",
+        description: getFriendlySubmitError(error),
       });
     } finally {
       setIsSubmitting(false);
