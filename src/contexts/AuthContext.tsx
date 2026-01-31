@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserRole(null);
       }
     } catch (error) {
-      console.error("Error checking session:", error);
+      // Silently handle API errors to prevent white screen
+      // User will simply not be authenticated
+      console.warn("Session check failed - continuing without auth:", error);
       setUser(null);
       setUserRole(null);
     } finally {

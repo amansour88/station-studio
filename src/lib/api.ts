@@ -5,8 +5,8 @@
  * with automatic session handling and error management.
  */
 
-// Use API_URL from env or default to /api for production
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+// Use API_URL from env or default to production API
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://aws.sa/api";
 
 export interface ApiError {
   error: string;

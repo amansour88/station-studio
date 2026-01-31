@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Save, Upload, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ interface HeroData {
 }
 
 const HeroEditor = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -104,6 +106,9 @@ const HeroEditor = () => {
         cta_text: heroData.cta_text,
         cta_link: heroData.cta_link,
       });
+
+      // Invalidate hero cache to refresh homepage
+      queryClient.invalidateQueries({ queryKey: ["hero-section"] });
 
       toast({
         title: "تم الحفظ",
