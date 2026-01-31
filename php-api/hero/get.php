@@ -12,6 +12,10 @@ try {
     // Add caching headers (5 minutes)
     header("Cache-Control: public, max-age=300");
     if ($hero) {
+        // Parse JSON stats if stored as JSON string
+        if (isset($hero['stats']) && is_string($hero['stats'])) {
+            $hero['stats'] = json_decode($hero['stats'], true);
+        }
         header("ETag: " . md5(json_encode($hero)));
         echo json_encode($hero);
     } else {

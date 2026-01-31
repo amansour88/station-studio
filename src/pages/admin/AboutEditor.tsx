@@ -182,7 +182,7 @@ const AboutEditor = () => {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                العنوان
+                عنوان القسم (يظهر في رأس القسم)
               </label>
               <Input
                 value={aboutData?.title || ""}
@@ -192,7 +192,11 @@ const AboutEditor = () => {
                   )
                 }
                 className="bg-muted/50"
+                placeholder="مثال: قصة نجاح سعودية منذ 1998"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                هذا العنوان يظهر بعد "عن اوس" مباشرة في الصفحة الرئيسية
+              </p>
             </div>
 
             <div>
