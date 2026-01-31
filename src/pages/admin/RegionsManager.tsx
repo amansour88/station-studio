@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, Save, X, MapPin, ExternalLink } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ interface Region {
 }
 
 const RegionsManager = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,6 +131,9 @@ const RegionsManager = () => {
           description: "تم حفظ التغييرات بنجاح",
         });
       }
+
+      // Invalidate regions cache
+      queryClient.invalidateQueries({ queryKey: ["regions"] });
 
       fetchRegions();
       handleCancel();

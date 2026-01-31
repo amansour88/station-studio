@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 
@@ -182,15 +182,15 @@ const HeroEditor = () => {
               <label className="block text-sm font-medium text-foreground mb-2">
                 الوصف
               </label>
-              <Textarea
+              <RichTextEditor
                 value={heroData?.description || ""}
-                onChange={(e) =>
+                onChange={(description) =>
                   setHeroData((prev) =>
-                    prev ? { ...prev, description: e.target.value } : null
+                    prev ? { ...prev, description } : null
                   )
                 }
-                rows={3}
-                className="bg-muted/50"
+                placeholder="اكتب وصف القسم الرئيسي هنا..."
+                minHeight="150px"
               />
             </div>
 
