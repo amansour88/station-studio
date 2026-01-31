@@ -8,6 +8,20 @@
 // Use API_URL from env or default to production API
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://aws.sa/api";
 
+export class ApiRequestError extends Error {
+  status?: number;
+  url?: string;
+  body?: unknown;
+
+  constructor(message: string, opts: { status?: number; url?: string; body?: unknown } = {}) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = opts.status;
+    this.url = opts.url;
+    this.body = opts.body;
+  }
+}
+
 export interface ApiError {
   error: string;
 }
@@ -21,23 +35,45 @@ export interface ApiResponse<T = unknown> {
 /**
  * Parse response and handle errors
  */
-async function handleResponse<T>(response: Response): Promise<T> {
-  const contentType = response.headers.get("content-type");
-  
-  if (!contentType || !contentType.includes("application/json")) {
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-    return {} as T;
-  }
+async function handleResponse<T>(response: Response, url: string): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const raw = await response.text();
 
-  const data = await response.json();
+  let parsed: any = null;
+  const looksJson =
+    contentType.includes("application/json") ||
+    raw.trim().startsWith("{") ||
+    raw.trim().startsWith("[");
+
+  if (raw && looksJson) {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = null;
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || `Request failed with status ${response.status}`);
+    const msg =
+      (parsed && (parsed.error || parsed.message)) ||
+      raw ||
+      `Request failed with status ${response.status}`;
+
+    const err = new ApiRequestError(String(msg), {
+      status: response.status,
+      url,
+      body: parsed ?? raw,
+    });
+
+    // Helpful debug: tells us whether this is CORS/network (no response) vs server validation.
+    console.error("[API] Request failed", { status: response.status, url, body: err.body });
+    throw err;
   }
 
-  return data;
+  if (parsed !== null) return parsed as T;
+
+  // Some endpoints may return empty bodies on success
+  return {} as T;
 }
 
 /**
@@ -63,14 +99,15 @@ export const api = {
       },
     });
 
-    return handleResponse<T>(response);
+    return handleResponse<T>(response, url);
   },
 
   /**
    * POST request
    */
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const response = await fetch(url, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -80,14 +117,15 @@ export const api = {
       body: data ? JSON.stringify(data) : undefined,
     });
 
-    return handleResponse<T>(response);
+    return handleResponse<T>(response, url);
   },
 
   /**
    * PUT request
    */
   async put<T>(endpoint: string, data: unknown): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const response = await fetch(url, {
       method: "PUT",
       credentials: "include",
       headers: {
@@ -97,7 +135,7 @@ export const api = {
       body: JSON.stringify(data),
     });
 
-    return handleResponse<T>(response);
+    return handleResponse<T>(response, url);
   },
 
   /**
@@ -119,7 +157,7 @@ export const api = {
       },
     });
 
-    return handleResponse<T>(response);
+    return handleResponse<T>(response, url);
   },
 
   /**
@@ -140,7 +178,7 @@ export const api = {
       body: formData,
     });
 
-    return handleResponse<{ url: string; success: boolean }>(response);
+    return handleResponse<{ url: string; success: boolean }>(response, url);
   },
 };
 
