@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, GripVertical, Save, X, Upload } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ interface Service {
 }
 
 const ServicesManager = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,6 +145,9 @@ const ServicesManager = () => {
           description: "تم حفظ التغييرات بنجاح",
         });
       }
+
+      // Invalidate services cache to refresh homepage
+      queryClient.invalidateQueries({ queryKey: ["services"] });
 
       fetchServices();
       handleCancel();

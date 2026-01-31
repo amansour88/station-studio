@@ -8,6 +8,8 @@
 $allowed_origins = [
     'https://aws.sa',
     'https://www.aws.sa',
+    'https://station-studio.lovable.app',
+    'https://id-preview--b98bc172-4c7e-470a-abb0-5149fd721ca5.lovable.app',
     'http://localhost:5173',
     'http://localhost:3000',
 ];
